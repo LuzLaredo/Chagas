@@ -1,0 +1,414 @@
+/* Contenedor principal con fondo FIJO igual que otras páginas */
+.mapas-container {
+  min-height: 100vh;
+  padding: 40px;
+  padding-top: 120px;
+  background: url('../assets/images/Cochabamba-Bolivia.png') no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  color: white;
+  position: relative;
+}
+
+/* Asegurar que el contenido esté visible */
+.mapas-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Header */
+.mapas-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.mapas-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #000;
+  margin: 0;
+  text-align: left;
+  line-height: 1.1;
+}
+
+.mapas-header p {
+  font-size: 1rem;
+  color: #666;
+  margin: 5px 0 0 0;
+  font-style: italic;
+}
+
+.mapas-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: stretch;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 2px solid #e9ecef;
+}
+
+.btn-center-map,
+.btn-toggle-municipios {
+  padding: 8px 12px;
+  background-color: #dc3545;
+  color: white;
+  border: 2px solid #000;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 13px;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.btn-center-map:hover,
+.btn-toggle-municipios:hover {
+  background-color: #c82333;
+  transform: translateY(-1px);
+}
+
+.btn-toggle-municipios {
+  background-color: #17a2b8;
+}
+
+.btn-toggle-municipios:hover {
+  background-color: #138496;
+}
+
+/* Filtros */
+.mapas-filters {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+  padding: 15px 20px;
+  border: 2px solid #000;
+  border-radius: 0;
+  margin-bottom: 20px;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-group label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #000;
+}
+
+.estado-filter {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #f8f9fa;
+  color: #000;
+  min-width: 150px;
+}
+
+.estado-filter:focus {
+  outline: none;
+  border-color: #dc3545;
+  background-color: white;
+  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+}
+
+.filter-info {
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+/* Contenido principal */
+.mapas-content {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+/* Leyenda */
+.mapas-legend {
+  background-color: #fff;
+  border: 2px solid #000;
+  border-radius: 0;
+  padding: 20px;
+  min-width: 250px;
+  height: fit-content;
+}
+
+.mapas-legend h3 {
+  margin: 0 0 15px 0;
+  color: #000;
+  font-size: 18px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.legend-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  flex-shrink: 0;
+}
+
+.legend-item span:last-child {
+  color: #000;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Contenedor del mapa */
+.mapas-map-container {
+  flex: 1;
+  background-color: #fff;
+  border: 2px solid #000;
+  border-radius: 0;
+  overflow: hidden;
+  position: relative;
+  min-height: 600px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mapas-map {
+  width: 100%;
+  height: 600px;
+  border-radius: 0;
+  display: block;
+}
+
+/* Indicador de carga del mapa */
+.map-loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #f8f9fa;
+  z-index: 10;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e9ecef;
+  border-top: 4px solid #dc3545;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.map-loading p {
+  color: #666;
+  font-size: 16px;
+  margin: 0;
+  font-weight: 500;
+}
+
+/* Marcadores personalizados */
+.custom-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Estilos para tooltips de municipios */
+.leaflet-tooltip.label-muni {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  font-weight: 600;
+  text-shadow: 0 0 3px rgba(255,255,255,.9);
+}
+
+/* Información adicional */
+.mapas-info {
+  background-color: #fff;
+  border: 2px solid #000;
+  border-radius: 0;
+  padding: 15px 20px;
+  margin-top: 20px;
+}
+
+.mapas-info p {
+  margin: 0;
+  color: #000;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Estados de error y carga */
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  font-size: 18px;
+  color: #000;
+  background-color: #fff;
+  border: 2px solid #000;
+  border-radius: 0;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.btn-retry {
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  transition: background-color 0.3s;
+}
+
+.btn-retry:hover {
+  background-color: #c82333;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mapas-container {
+    padding: 20px;
+    padding-top: 100px;
+  }
+  
+  .mapas-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 15px;
+  }
+  
+  .mapas-header h1 {
+    font-size: 2rem;
+    text-align: center;
+  }
+  
+  .mapas-controls {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+  
+  .btn-center-map,
+  .btn-toggle-municipios {
+    flex: 1;
+    min-width: 120px;
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+  
+  .mapas-filters {
+    flex-direction: column;
+    gap: 10px;
+    align-items: stretch;
+  }
+  
+  .filter-group {
+    justify-content: center;
+  }
+  
+  .mapas-content {
+    flex-direction: column;
+  }
+  
+  .mapas-legend {
+    min-width: auto;
+    order: 2;
+  }
+  
+  .mapas-map-container {
+    order: 1;
+  }
+  
+  .mapas-map {
+    height: 400px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mapas-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .mapas-controls {
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .btn-center-map,
+  .btn-toggle-municipios {
+    width: 100%;
+    justify-content: center;
+    font-size: 11px;
+    padding: 5px 6px;
+  }
+  
+  .mapas-map {
+    height: 300px;
+  }
+  
+  .legend-items {
+    gap: 8px;
+  }
+  
+  .legend-dot {
+    width: 16px;
+    height: 16px;
+  }
+  
+  .legend-item span:last-child {
+    font-size: 12px;
+  }
+}

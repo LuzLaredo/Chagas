@@ -1,0 +1,129 @@
+/* Contenedor principal */
+
+.register-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px;
+  background: linear-gradient(to right, #000000 5%, #ff0000 60%, #ffffff 100%);
+}
+
+/* Lado izquierdo con logo e info */
+.register-info {
+  flex: 1;
+  color: white;
+  padding: 20px 40px;
+  text-align: center;
+}
+
+.register-logo {
+  width: 200px;
+  margin-bottom: 20px;
+}
+
+.register-info h2 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+  font-weight: 700;
+}
+
+.register-info p {
+  font-size: 1.2rem;
+  line-height: 1.5;
+}
+
+/* Card del formulario */
+.register-card {
+  width: 350px;
+  background: #fff;
+  border-radius: 12px;
+  padding: 30px 25px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.register-card h3 {
+  font-size: 1.6rem;
+  margin-bottom: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Inputs */
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.register-form input {
+  margin-bottom: 15px;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 1rem;
+  background: #fff;
+  color: #000;
+}
+
+.register-form input:focus {
+  border-color: #ff0000;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
+}
+
+/* Botón */
+.register-btn {
+  background: #28a745;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.register-btn:hover {
+  background: #218838;
+}
+
+.login-title {
+  color: #ff0000; /* rojo */
+  font-weight: 700; /* negrilla */
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+}
+
+
+/* Texto de login */
+.login-redirect {
+  margin-top: 15px;
+  font-size: 0.95rem;
+  color: #000;
+}
+
+.login-redirect a {
+  color: #d32f2f;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.login-redirect a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .register-container {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .register-info {
+    margin-bottom: 30px;
+  }
+}

@@ -1,0 +1,33 @@
+.navbar-navigation {
+  background-color: black;
+  color: white;
+  height: 60px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 0; /* quitar separación con header */
+}
+
+/* Contenedor de los items en fila */
+.navbar-navigation .navbar-content {
+  display: flex;
+  flex-direction: row; /* fila horizontal */
+  gap: 27rem; /* separación más grande entre botones */
+}
+
+.navbar-navigation a {
+  color: white;
+  text-decoration: none;
+  font-size: 1.125rem;
+  font-weight: 600;
+  transition: color 0.2s;
+}
+
+.navbar-navigation a:hover {
+  color: #f87171;
+}
+
+.navbar-navigation a.active {
+  color: #ef4444;
+  font-weight: bold;
+}

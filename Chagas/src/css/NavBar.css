@@ -1,0 +1,149 @@
+/* Navbar superior (degradado rosa) */
+.navbar-header {
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 999;
+}
+
+.navbar-gradient {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px; /* antes 18px 32px */
+  background: linear-gradient(90deg, #fff 0%, #f98484 100%);
+}
+
+.navbar-logo {
+  height: 80px; /* antes 56px */
+  width: 120px;
+}
+
+.navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-title {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #2162a3;
+  line-height: 1.1;
+}
+
+.navbar-actions {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+}
+
+.navbar-register {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #fff;
+  color: #ea3434;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.navbar-register:hover {
+  background: #fee0e0;
+}
+
+.navbar-login {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #161616;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.navbar-login:hover {
+  background: #292929;
+}
+
+/* Estilos para cuando hay sesión activa (MANTENIENDO EL DISEÑO ORIGINAL) */
+.user-session {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.user-welcome {
+  font-size: 0.9rem;
+  color: #2162a3;
+  font-weight: 500;
+}
+
+.user-badge {
+  background-color: #2162a3;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  text-transform: uppercase;
+}
+
+.navbar-logout {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: #161616;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.navbar-logout:hover {
+  background: #292929;
+}
+
+/* Navbar inferior negro con links */
+.navbar-subnav {
+  position: fixed;
+  left: 0;
+  width: 100%;
+  background-color: #111;
+  z-index: 998;
+}
+
+.navbar-subnav-list {
+  display: flex;
+  margin: 0;
+  padding: 0 24px;
+  width: 100%;
+  list-style: none;
+  justify-content: space-between;
+}
+
+.navbar-subnav-item {
+  flex: 1;
+  text-align: center;
+  color: #fff;
+  font-weight: 400;
+  cursor: pointer;
+  transition: color 0.15s;
+  padding: 12px 0;
+}
+
+.navbar-subnav-item a {
+  color: inherit;
+  text-decoration: none;
+  display: block;
+  width: 100%;
+}
+
+.navbar-subnav-item:hover {
+  color: #e63946;
+}
+
+/* Para que el contenido debajo no quede oculto */
+body {
+  margin: 0;
+}

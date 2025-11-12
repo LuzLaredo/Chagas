@@ -1,0 +1,346 @@
+/* Estilos para el modal de cancelar denuncia */
+.cancelar-denuncia-container {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: rgba(0, 0, 0, 0.8) !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  z-index: 99999 !important;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.cancelar-denuncia-modal {
+  background: white !important;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  z-index: 100000;
+}
+
+/* Header del modal */
+.modal-header {
+  padding: 24px 24px 16px 24px;
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+}
+
+.header-icon {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  background: #2563eb;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.close-icon {
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.modal-header h1 {
+  color: #1e40af;
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0 0 8px 0;
+}
+
+.header-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* Formulario */
+.cancelar-form {
+  padding: 24px;
+}
+
+/* Detalles de la denuncia */
+.denuncia-details {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 24px;
+}
+
+.denuncia-details h3 {
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.denuncia-details p {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 4px 0;
+}
+
+/* Sección de motivos */
+.motivo-section {
+  margin-bottom: 24px;
+}
+
+.motivo-section h3 {
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+}
+
+.required {
+  color: #dc2626;
+}
+
+.motivos-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.motivo-option {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.motivo-option:hover {
+  border-color: #2563eb;
+  background-color: #f8fafc;
+}
+
+.motivo-option.selected {
+  border-color: #2563eb;
+  background-color: #eff6ff;
+}
+
+.motivo-radio {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.motivo-radio input[type="radio"] {
+  display: none;
+}
+
+.motivo-radio label {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid #d1d5db;
+  border-radius: 50%;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+.motivo-radio input[type="radio"]:checked + label {
+  border-color: #2563eb;
+  background-color: #2563eb;
+}
+
+.motivo-radio input[type="radio"]:checked + label::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+}
+
+.motivo-content h4 {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+}
+
+.motivo-content p {
+  color: #6b7280;
+  font-size: 13px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Sección de comentarios */
+.comentarios-section {
+  margin-bottom: 24px;
+}
+
+.comentarios-section h3 {
+  color: #374151;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+}
+
+.comentarios-subtitle {
+  color: #6b7280;
+  font-size: 14px;
+  margin: 0 0 12px 0;
+}
+
+.comentarios-textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  box-sizing: border-box;
+}
+
+.comentarios-textarea:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.comentarios-textarea::placeholder {
+  color: #9ca3af;
+}
+
+/* Mensaje de error */
+.error-message {
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #dc2626;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  font-size: 14px;
+}
+
+/* Botones de acción */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  padding-top: 16px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.btn-volver,
+.btn-confirmar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 140px;
+  justify-content: center;
+}
+
+.btn-volver {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.btn-volver:hover {
+  background: #e5e7eb;
+}
+
+.btn-confirmar {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-confirmar:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.btn-confirmar:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+.btn-icon {
+  font-size: 16px;
+  font-weight: bold;
+}
+
+/* Mensajes de éxito y carga */
+.success-message,
+.loading-message {
+  text-align: center;
+  padding: 40px;
+  background: white !important;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  max-width: 400px;
+  width: 100%;
+  z-index: 100001;
+  position: relative;
+}
+
+.success-message h2 {
+  color: #059669;
+  margin: 0 0 16px 0;
+}
+
+.success-message p {
+  color: #6b7280;
+  margin: 8px 0;
+}
+
+.loading-message p {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .cancelar-denuncia-container {
+    padding: 10px;
+  }
+  
+  .cancelar-denuncia-modal {
+    max-height: 95vh;
+  }
+  
+  .modal-header,
+  .cancelar-form {
+    padding: 16px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .btn-volver,
+  .btn-confirmar {
+    width: 100%;
+  }
+}

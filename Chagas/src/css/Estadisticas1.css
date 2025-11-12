@@ -1,0 +1,181 @@
+/* Contenedor principal */
+.estadisticas-container {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding: 5rem 1rem 2rem;
+}
+
+/* Contenedor main */
+.estadisticas-main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Loading */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+  color: #444;
+  gap: 1rem;
+}
+
+.loading-icon {
+  font-size: 3rem;
+  color: #e11d48;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Cards */
+.card-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.card-item:last-child {
+  border-bottom: none;
+}
+
+/* Items destacados */
+.card-item.highlight {
+  background-color: #fef2f2;
+  border-radius: 0.5rem;
+}
+
+/* Cards principales */
+.card {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 2px solid #f3f4f6;
+  overflow: hidden;
+}
+
+/* Header de la card */
+.card-header {
+  padding: 1rem 1.5rem;
+  background: linear-gradient(to right, #fee2e2, #fee2f0);
+}
+
+.card-header h4 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #b91c1c;
+  margin: 0;
+  border-bottom: 2px solid #fecaca;
+  padding-bottom: 0.5rem;
+}
+
+/* Body de la card */
+.card-body {
+  padding: 1rem 1.5rem;
+}
+
+/* Contenedor de gráficos */
+.graficos-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Grid de gráficos */
+.graficos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+}
+
+/* Cada gráfico */
+.grafico-card {
+  background-color: #fff;
+  border-radius: 1rem;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  padding: 1rem;
+  overflow: hidden;
+}
+
+/* Textos de gráficos */
+.grafico-card h5 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.5rem;
+}
+
+.grafico-card canvas {
+  max-height: 200px; /* Gráficos un poco más pequeños */
+  width: 100% !important;
+}
+/* Contenedor del botón de estadísticas avanzadas */
+.advanced-stats-button-container {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+}
+
+/* Estilos del botón de estadísticas avanzadas - COLOR ROJO */
+.advanced-stats-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.advanced-stats-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
+  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
+}
+
+.advanced-stats-button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
+}
+
+.button-icon {
+  font-size: 18px;
+}
+
+/* Asegurar que el contenedor principal tenga posición relativa */
+.estadisticas-container {
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .advanced-stats-button-container {
+    position: static;
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+    padding: 0 15px;
+  }
+  
+  .advanced-stats-button {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+}

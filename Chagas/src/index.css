@@ -1,0 +1,34 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Que todo el documento ocupe el 100% */
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Fondo degradado de 3 colores */
+#root {
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(90deg,
+    black 0%,
+    black 10%,
+    red 70%,
+    white 100%
+  );
+}
+
+/* Mejora la visualización de las tarjetas */
+.bg-red-50 {
+  background-color: rgb(254, 242, 242);
+}
+
+.border-red-300 {
+  border-color: rgb(252, 165, 165);
+}

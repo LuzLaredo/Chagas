@@ -1,0 +1,52 @@
+/* ActionButtons.css */
+
+/* Contenedor centrado y compacto */
+.action-buttons-container {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem; /* un poco más compacto */
+  margin-top: 1.5rem;
+  max-width: 500px; /* ancho máximo */
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Botón Programar */
+.action-button-programar {
+  flex: 1;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding: 0.9rem 1.8rem;
+  border: 2px solid #dc2626;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Hover */
+.action-button-programar:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+}
+
+/* Botón Formulario */
+.action-button-formulario {
+  flex: 1;
+  background: linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 100%);
+  color: #831843;
+  font-weight: 700;
+  font-size: 1.15rem;
+  padding: 0.9rem 1.8rem;
+  border: 2px solid #f472b6;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(244, 114, 182, 0.3);
+  transition: all 0.3s ease;
+}
+
+/* Hover */
+.action-button-formulario:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(244, 114, 182, 0.4);
+}
