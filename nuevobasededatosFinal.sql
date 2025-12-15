@@ -262,7 +262,20 @@ CREATE TABLE Formulario_RR1 (
     estado VARCHAR(10)
 );
 
-
+-- =====================================
+-- TABLA NOTIFICACIONES (AÑADIDA)
+-- =====================================
+CREATE TABLE Notificaciones (
+    notificacion_id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_receptor_id INT NOT NULL,
+    tipo_entidad_origen VARCHAR(50) NOT NULL, -- Ej: 'denuncia', 'programacion', 'rociado_fallido'
+    id_entidad_origen VARCHAR(50) NOT NULL, -- Número de Vivienda (Viviendas.numero_vivienda)
+    mensaje TEXT NOT NULL,
+    leida TINYINT(1) DEFAULT 0, -- 0: No leída, 1: Leída. Se usa para la lógica grupal.
+    ruta_destino VARCHAR(255), -- Ej: '/CargaRociado', '/denuncia'
+    fecha_creacion DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_receptor_id) REFERENCES Usuarios(usuario_id)
+);
 
 
 

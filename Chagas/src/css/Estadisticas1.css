@@ -1,181 +1,237 @@
-/* Contenedor principal */
+/* ========== ESTADÍSTICAS - DISEÑO HERMOSO Y COMPACTO ========== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* ========== CONTAINER PRINCIPAL ========== */
 .estadisticas-container {
-  min-height: 100vh;
-  background: #f8fafc;
-  padding: 5rem 1rem 2rem;
+    /* Reducido el max-width para centrar el contenido y dar menos espacio a los gráficos */
+    max-width: 1100px;
+    /* Reducción adicional del ancho máximo */
+    margin: auto;
+    min-height: 100vh;
+    padding: 30px 20px;
+    padding-top: 100px;
+    background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+    font-family: 'Poppins', sans-serif;
 }
 
-/* Contenedor main */
+/* ========== HEADER Y FILTROS ========== */
+.estadisticas-header {
+    background: white;
+    padding: 20px 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.estadisticas-header h1 {
+    font-size: 2.2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 0 0 20px 0;
+    letter-spacing: -0.5px;
+    text-align: center;
+}
+
+/* ========== FILTROS ========== */
+.filtros-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+}
+
+.filtro-button {
+    padding: 10px 18px;
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 140px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+    /* Transición más corta */
+}
+
+.filtro-button:hover:not(:disabled) {
+    transform: none;
+    box-shadow: 0 3px 8px rgba(220, 38, 38, 0.1);
+}
+
+.fecha-input {
+    min-width: 140px;
+}
+
+.municipio-button.municipio-selected,
+.comunidad-button.comunidad-selected {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    border-color: #dc2626;
+    color: #991b1b;
+}
+
+.actualizar-button {
+    background: linear-gradient(135deg, #dc2626, #991b1b);
+    color: white;
+    border-color: #dc2626;
+    box-shadow: 0 3px 10px rgba(220, 38, 38, 0.2);
+}
+
+.actualizar-button:hover:not(:disabled) {
+    transform: none;
+    box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+/* ========== ADVANCED STATS BUTTON ========== */
+.advanced-stats-button-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.advanced-stats-button {
+    padding: 10px 25px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    box-shadow: 0 3px 10px rgba(16, 185, 129, 0.2);
+}
+
+/* ========== MAIN CONTENT (Ajuste para gráficos y tarjetas) ========== */
 .estadisticas-main {
-  display: flex;
-  flex-direction: column;
-  gap: 2rem;
-  max-width: 1200px;
-  margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    animation: fadeIn 0.6s ease;
 }
 
-/* Loading */
+/* --- KEY METRICS (Tarjetas de 4) --- */
+.key-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    margin-bottom: 10px;
+}
+
+.key-metric-card {
+    padding: 12px;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid var(--metric-color);
+}
+
+.metric-value {
+    font-size: 1.8rem;
+}
+
+/* --- CONTENEDOR DE GRÁFICOS --- */
+.graficos-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.grafico-card {
+    height: 100%;
+    /* Para que tengan la misma altura */
+}
+
+@media (max-width: 768px) {
+    .graficos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ========== LOADING/ERROR (Mantenidos) ========== */
 .loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 80vh;
-  color: #444;
-  gap: 1rem;
+    text-align: center;
+    padding: 60px 30px;
+    /* Padding reducido */
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
 }
 
 .loading-icon {
-  font-size: 3rem;
-  color: #e11d48;
-  animation: spin 1s linear infinite;
+    font-size: 3.5rem;
+    /* Icono ligeramente más pequeño */
+    color: #dc2626;
+    margin-bottom: 15px;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.loading-container p {
+    font-size: 1.1rem;
+    color: #6b7280;
+    font-weight: 600;
+    margin: 0;
 }
 
-/* Cards */
-.card-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #f3f4f6;
+.error-message {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #991b1b;
+    padding: 15px 20px;
+    border-radius: 10px;
+    border-left: 4px solid #dc2626;
+    font-weight: 600;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
 }
 
-.card-item:last-child {
-  border-bottom: none;
+
+/* ========== RESPONSIVE (Optimizando para espacios pequeños) ========== */
+@media (max-width: 1024px) {
+    .estadisticas-container {
+        max-width: 95%;
+        /* Asegura que no se pegue a los bordes */
+        padding: 20px;
+        padding-top: 90px;
+    }
+
+    .key-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+        /* 2x2 en tablet */
+    }
+
+    .estadisticas-header h1 {
+        font-size: 1.8rem;
+    }
 }
 
-/* Items destacados */
-.card-item.highlight {
-  background-color: #fef2f2;
-  border-radius: 0.5rem;
-}
-
-/* Cards principales */
-.card {
-  background-color: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border: 2px solid #f3f4f6;
-  overflow: hidden;
-}
-
-/* Header de la card */
-.card-header {
-  padding: 1rem 1.5rem;
-  background: linear-gradient(to right, #fee2e2, #fee2f0);
-}
-
-.card-header h4 {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #b91c1c;
-  margin: 0;
-  border-bottom: 2px solid #fecaca;
-  padding-bottom: 0.5rem;
-}
-
-/* Body de la card */
-.card-body {
-  padding: 1rem 1.5rem;
-}
-
-/* Contenedor de gráficos */
-.graficos-container {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-/* Grid de gráficos */
-.graficos-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-/* Cada gráfico */
-.grafico-card {
-  background-color: #fff;
-  border-radius: 1rem;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-  padding: 1rem;
-  overflow: hidden;
-}
-
-/* Textos de gráficos */
-.grafico-card h5 {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #374151;
-  margin-bottom: 0.5rem;
-}
-
-.grafico-card canvas {
-  max-height: 200px; /* Gráficos un poco más pequeños */
-  width: 100% !important;
-}
-/* Contenedor del botón de estadísticas avanzadas */
-.advanced-stats-button-container {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 1000;
-}
-
-/* Estilos del botón de estadísticas avanzadas - COLOR ROJO */
-.advanced-stats-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
-}
-
-.advanced-stats-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(220, 38, 38, 0.4);
-  background: linear-gradient(135deg, #b91c1c 0%, #991b1b 100%);
-}
-
-.advanced-stats-button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.4);
-}
-
-.button-icon {
-  font-size: 18px;
-}
-
-/* Asegurar que el contenedor principal tenga posición relativa */
-.estadisticas-container {
-  position: relative;
-  min-height: 100vh;
-}
-
-/* Responsive */
 @media (max-width: 768px) {
-  .advanced-stats-button-container {
-    position: static;
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: 20px;
-    padding: 0 15px;
-  }
-  
-  .advanced-stats-button {
-    font-size: 13px;
-    padding: 8px 12px;
-  }
+    .estadisticas-container {
+        padding: 15px;
+        padding-top: 80px;
+    }
+
+    /* Filtros full width en móvil */
+    .filtros-container {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filtro-button,
+    .advanced-stats-button {
+        width: 100%;
+        min-width: auto;
+        justify-content: center;
+    }
+
+    .key-metrics-grid {
+        grid-template-columns: 1fr;
+        /* 1x4 en móvil */
+    }
+}
+
+@media (max-width: 480px) {
+    .estadisticas-header h1 {
+        font-size: 1.5rem;
+    }
 }

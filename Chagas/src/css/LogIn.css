@@ -1,129 +1,390 @@
-/* Contenedor principal */
+/* ========== LOGIN PAGE - DISEÑO HERMOSO Y MODERNO ========== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
+/* ========== CONTENEDOR PRINCIPAL ========== */
 .register-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   min-height: 100vh;
   padding: 40px;
-  background: linear-gradient(to right, #000000 5%, #ff0000 60%, #ffffff 100%);
+  background: linear-gradient(135deg, #1f2937 0%, #dc2626 50%, #ffffff 100%);
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Lado izquierdo con logo e info */
+/* ========== LADO IZQUIERDO (Info) ========== */
 .register-info {
   flex: 1;
   color: white;
-  padding: 20px 40px;
+  padding: 40px;
   text-align: center;
+  animation: fadeIn 0.6s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .register-logo {
   width: 200px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 .register-info h2 {
-  font-size: 2rem;
-  margin-bottom: 15px;
-  font-weight: 700;
+  font-size: 2.2rem;
+  margin-bottom: 20px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .register-info p {
-  font-size: 1.2rem;
-  line-height: 1.5;
+  font-size: 1.15rem;
+  line-height: 1.6;
+  opacity: 0.95;
 }
 
-/* Card del formulario */
+/* ========== CARD DEL FORMULARIO ========== */
 .register-card {
-  width: 350px;
-  background: #fff;
-  border-radius: 12px;
-  padding: 30px 25px;
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+  width: 420px;
+  background: white;
+  border-radius: 20px;
+  padding: 40px 35px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
   text-align: center;
+  animation: slideIn 0.6s ease;
 }
 
-.register-card h3 {
-  font-size: 1.6rem;
-  margin-bottom: 20px;
-  font-weight: 600;
-  color: #333;
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-/* Inputs */
+.register-card h3,
+.login-title {
+  font-size: 1.8rem;
+  margin-bottom: 25px;
+  font-weight: 700;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: -0.5px;
+}
+
+/* ========== FORMULARIO ========== */
 .register-form {
   display: flex;
   flex-direction: column;
+  gap: 18px;
 }
 
 .register-form input {
-  margin-bottom: 15px;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
   font-size: 1rem;
-  background: #fff;
-  color: #000;
+  background: #f9fafb;
+  color: #1f2937;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
 }
 
 .register-form input:focus {
-  border-color: #ff0000;
   outline: none;
-  box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.2);
+  border-color: #dc2626;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  transform: translateY(-2px);
 }
 
-/* Botón */
+.register-form input::placeholder {
+  color: #9ca3af;
+}
+
+/* ========== BOTÓN ========== */
 .register-btn {
-  background: #28a745;
+  background: linear-gradient(135deg, #10b981, #059669);
   color: white;
   border: none;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: background 0.3s;
+  transition: all 0.3s ease;
+  margin-top: 10px;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
 }
 
-.register-btn:hover {
-  background: #218838;
+.register-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669, #047857);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(16, 185, 129, 0.4);
 }
 
-.login-title {
-  color: #ff0000; /* rojo */
-  font-weight: 700; /* negrilla */
-  margin-bottom: 20px;
-  font-size: 1.6rem;
+.register-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
-
-/* Texto de login */
+/* ========== TEXTO DE REDIRECCIÓN ========== */
 .login-redirect {
-  margin-top: 15px;
+  margin-top: 20px;
   font-size: 0.95rem;
-  color: #000;
+  color: #6b7280;
 }
 
 .login-redirect a {
-  color: #d32f2f;
+  color: #dc2626;
   font-weight: 600;
   text-decoration: none;
+  transition: color 0.2s ease;
 }
 
 .login-redirect a:hover {
+  color: #991b1b;
   text-decoration: underline;
 }
 
-/* Responsive */
+/* ========== FORGOT PASSWORD ========== */
+.forgot-password-link {
+  margin-top: 15px;
+  text-align: center;
+}
+
+.forgot-password-link a {
+  color: #dc2626;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-link a:hover {
+  color: #991b1b;
+  text-decoration: underline;
+}
+
+.forgot-password-section {
+  text-align: center;
+}
+
+.forgot-password-section h4 {
+  color: #1f2937;
+  margin-bottom: 12px;
+  font-weight: 600;
+}
+
+.forgot-password-section p {
+  color: #6b7280;
+  margin-bottom: 25px;
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.back-to-login {
+  margin-top: 20px;
+}
+
+.back-to-login a {
+  color: #dc2626;
+  text-decoration: none;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.back-to-login a:hover {
+  color: #991b1b;
+  text-decoration: underline;
+}
+
+/* ========== MENSAJES ========== */
+.success-message {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 4px solid #10b981;
+  font-weight: 600;
+}
+
+.email-display {
+  background: #f9fafb;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  border: 2px solid #e5e7eb;
+  font-weight: 500;
+  color: #374151;
+}
+
+.error-message {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border-left: 4px solid #dc2626;
+  font-weight: 600;
+}
+
+/* ========== PASSWORD REQUIREMENTS ========== */
+.password-requirements {
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.password-requirements p {
+  margin: 0 0 10px 0;
+  font-weight: 700;
+  color: #374151;
+  font-size: 0.95rem;
+}
+
+.password-requirements ul {
+  margin: 0;
+  padding-left: 24px;
+}
+
+.password-requirements li {
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: #6b7280;
+}
+
+.password-requirements li:before {
+  content: "✓";
+  margin-right: 8px;
+  font-weight: bold;
+  color: #10b981;
+}
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 1024px) {
+  .register-container {
+    padding: 30px;
+  }
+
+  .register-info h2 {
+    font-size: 2rem;
+  }
+
+  .register-info p {
+    font-size: 1.05rem;
+  }
+
+  .register-card {
+    width: 380px;
+    padding: 35px 30px;
+  }
+}
+
 @media (max-width: 768px) {
   .register-container {
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
+    justify-content: flex-start;
+    padding: 25px 20px;
+    gap: 30px;
+  }
+
+  .register-card {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+    order: 1;
   }
 
   .register-info {
-    margin-bottom: 30px;
+    order: 2;
+    padding: 20px 15px;
+    width: 100%;
+  }
+
+  .register-info h2 {
+    font-size: 1.8rem;
+  }
+
+  .register-info p {
+    font-size: 1rem;
+  }
+
+  .register-logo {
+    width: 160px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 20px 15px;
+  }
+
+  .register-card {
+    padding: 30px 25px;
+  }
+
+  .register-card h3,
+  .login-title {
+    font-size: 1.5rem;
+  }
+
+  .register-form input {
+    padding: 12px 14px;
+    font-size: 0.95rem;
+  }
+
+  .register-btn {
+    padding: 12px;
+    font-size: 1rem;
+  }
+
+  .register-info h2 {
+    font-size: 1.5rem;
+  }
+
+  .register-info p {
+    font-size: 0.95rem;
+  }
+
+  .register-logo {
+    width: 130px;
   }
 }

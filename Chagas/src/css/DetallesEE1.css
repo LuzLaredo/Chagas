@@ -1,0 +1,239 @@
+/* DetallesEE1.css */
+
+.detalles-ee1-container {
+    max-width: 900px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #f0f0f0; 
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    font-family: Arial, sans-serif;
+    border-radius: 10px;
+}
+
+.detalles-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.menu-icon {
+    font-size: 2em;
+    margin-right: 15px;
+    cursor: pointer;
+    color: #333;
+}
+
+.title {
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #333;
+}
+
+.content-grid {
+    display: flex;
+    gap: 30px;
+}
+
+.info-column {
+    flex: 2;
+}
+
+.media-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* --- Paneles de Información --- */
+.info-panel {
+    background-color: #f7e0e4; /* Rosa pálido */
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid #d04f5e; /* Borde rojo destacado */
+}
+
+.panel-title {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #d04f5e; 
+    margin-bottom: 15px;
+    border-bottom: 1px solid #f2c7ce;
+    padding-bottom: 8px;
+}
+
+.info-panel p {
+    margin: 8px 0;
+    font-size: 0.95em;
+}
+
+/* --- Estilos Dinámicos (Resultado y Estado) --- */
+
+.result-tag, .status-tag {
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 15px;
+    margin-left: 10px;
+    font-size: 0.9em;
+    display: inline-block;
+}
+
+/* Resultado EE1 */
+.result-positivo {
+    background-color: #ffcccc; 
+    color: #cc0000;
+    border: 1px solid #cc0000;
+}
+
+.result-negativo {
+    background-color: #ccffcc; 
+    color: #006600;
+    border: 1px solid #006600;
+}
+
+/* Estado del Servicio */
+.status-programada {
+    background-color: #fff3cd; /* Amarillo (Alerta) */
+    color: #856404; 
+    border: 1px solid #ffeeba;
+}
+
+.status-rociada, .status-negativo {
+    background-color: #d4edda; /* Verde (Éxito) */
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+/* --- Botones --- */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.btn-programar, .btn-formulario {
+    padding: 12px 25px;
+    border: none;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    flex-grow: 1;
+}
+
+.btn-programar {
+    background-color: #d04f5e; /* Rojo principal */
+    color: white;
+}
+
+.btn-programar:hover {
+    background-color: #a33e49;
+}
+
+.btn-formulario {
+    background-color: white;
+    color: #333;
+    border: 1px solid #ccc;
+}
+
+/* --- Medios (Imágenes y Mapa) --- */
+.media-box {
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.vivienda-image {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.map-placeholder {
+    padding: 15px;
+    height: 180px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: #e9e9e9;
+    color: #555;
+}
+/* Estilos para el equipo técnico */
+.equipo-box {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #4e73df;
+}
+
+.equipo-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.equipo-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background-color: white;
+    border-radius: 6px;
+    border: 1px solid #e3e6f0;
+}
+
+.equipo-rol {
+    font-weight: 600;
+    color: #5a5c69;
+    font-size: 14px;
+}
+
+.equipo-nombre {
+    font-weight: 500;
+    color: #3a3b45;
+    font-size: 14px;
+}
+
+/* Estilos para la información de la imagen y coordenadas */
+.image-container, .map-container {
+    position: relative;
+}
+
+.image-info, .coords-info {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #6c757d;
+    text-align: center;
+}
+
+/* Estilos para las imágenes */
+.vivienda-image {
+    width: 100%;
+    height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .equipo-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .vivienda-image {
+        height: 250px;
+    }
+}

@@ -1,80 +1,60 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-// Importación del archivo CSS (ya creado)
-import '../css/Mapas.css'; 
-
-// Importación de servicios (los tipos ya no son necesarios en este archivo JSX)
+import '../css/Mapas.css';
 import entomologicaService from '../services/entomologicaService';
 import generalService from '../services/generalService';
+import { baseUrl } from '../api/BaseUrl';
 
-// =========================================================================
-// CONFIGURACIÓN DE LEAFLET E ICONOS
-// =========================================================================
-// Fix para que los iconos de Leaflet se carguen correctamente
-// Se usa 'as any' para evitar errores de tipado, aunque en JSX esto es JS puro
-delete (L.Icon.Default.prototype)._getIconUrl;
+// ====================================================
+// CONFIGURACIÓN GLOBALES - FIJAR ICONOS
+// ====================================================
+delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
     iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
     iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 });
 
-// Iconos personalizados para el Mapa EE1 (círculos)
+// Icono circular personalizado
 const getCircleIcon = (color) => {
     return new L.DivIcon({
         className: 'custom-div-icon',
-        html: `<div style="background-color: ${color}; width: 10px; height: 10px; border-radius: 50%; border: 1px solid white;"></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6]
+        html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></div>`,
+        iconSize: [16, 16],
+        iconAnchor: [8, 8]
     });
 };
 
 const MapasEE1 = () => {
     const navigate = useNavigate();
-    // Uso de useState sin tipificación explícita (JavaScript puro)
+    const { usuario, token } = useAuth();
     const [ee1Data, setEe1Data] = useState([]);
     const [municipios, setMunicipios] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [mapLoaded, setMapLoaded] = useState(false);
-
-    // Estados para filtros
     const [selectedMunicipio, setSelectedMunicipio] = useState('todos');
     const [selectedResultado, setSelectedResultado] = useState('todos');
-    const [selectedRociado, setSelectedRociado] = useState('todos');
-
     const [showLegend] = useState(true);
-    
+
     // Referencias para el mapa
     const mapRef = useRef(null);
     const mapInstance = useRef(null);
     const markersRef = useRef([]);
 
-    // =========================================================================
-    // LÓGICA DE ESTILOS Y COLORES
-    // =========================================================================
+    // Colores
+    const COLOR_POSITIVO = '#dc3545';
+    const COLOR_NEGATIVO = '#28a745';
 
-    // Colores basados en el resultado de EE1 y el estado del rociado
-    const getMarkerColorEE1 = (resultado, estadoRociado) => {
-        if (resultado === 'positivo') {
-            switch (estadoRociado) {
-                case 'Rociado Realizado': return '#007bff'; // Azul
-                case 'Pendiente de Rociado': return '#dc3545'; // Rojo
-                default: return '#fd7e14'; // Naranja (Positivo, estado indefinido)
-            }
-        } else if (resultado === 'negativo') {
-            return '#28a745'; // Verde
-        }
-        return '#6c757d'; // Gris por defecto
+    const getMarkerColorEE1 = (resultado) => {
+        if (resultado === 'positivo') return COLOR_POSITIVO;
+        if (resultado === 'negativo') return COLOR_NEGATIVO;
+        return '#6c757d';
     };
 
-    const getEstadoTextEE1 = (resultado, estadoRociado) => {
-        return `Resultado: ${resultado.toUpperCase()} | Rociado: ${estadoRociado}`;
-    };
-
-    // Función de formato de fecha
     const formatFecha = (fecha) => {
         if (!fecha) return 'N/A';
         try {
@@ -83,44 +63,79 @@ const MapasEE1 = () => {
             return fecha;
         }
     };
-    
-    // Función para manejar la navegación a la vista tabular
-    const navigateToDatosEE1 = () => {
-        navigate('/DatosEE1'); // Esta debe ser la ruta configurada para tu componente DatosEE1.jsx
-    };
 
-    // =========================================================================
-    // CARGA DE DATOS Y MAPA
-    // =========================================================================
+    const navigateToDatosEE1 = () => navigate('/DatosEE1');
 
-    // Cargar datos al montar el componente (EE1 y Municipios)
+    // ====================================================
+    // 1. CARGA DE DATOS
+    // ====================================================
     useEffect(() => {
-        const loadData = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-                
-                // USANDO AMBOS SERVICIOS EXTERNOS
-                const [ee1DataResponse, municipiosResponse] = await Promise.all([
-                    entomologicaService.getMapaEE1(),
-                    generalService.getMunicipios() // Usamos GeneralService para obtener los municipios
-                ]);
-
-                setEe1Data(ee1DataResponse || []);
-                setMunicipios(municipiosResponse || []);
-
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Error desconocido al cargar datos.';
-                console.error('Error al cargar datos EE1 o Municipios:', err);
-                setError(`Error al cargar los datos para el mapa EE1: ${errorMessage}`);
-            } finally {
-                setLoading(false);
-            }
-        };
         loadData();
     }, []);
 
-    // Inicializar el mapa
+    const loadData = async () => {
+        try {
+            setLoading(true);
+            setError(null);
+
+            // Si es supervisor, cargar solo su municipio
+            if (usuario?.rol === 'supervisor' && (usuario?.usuario_id || usuario?.id)) {
+                const usuarioId = usuario.usuario_id || usuario.id;
+                const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+
+                // Obtener municipio del supervisor
+                const municipioRes = await fetch(`${baseUrl}/api/usuarios/${usuarioId}/municipios`, {
+                    headers: headers
+                });
+
+                if (!municipioRes.ok) {
+                    console.error(`Error ${municipioRes.status} al obtener municipios:`, municipioRes.statusText);
+                    if (municipioRes.status === 401) {
+                        console.error('Token inválido o expirado. Por favor, inicia sesión nuevamente.');
+                    }
+                } else {
+                    const municipiosData = await municipioRes.json();
+                    setMunicipios(municipiosData || []);
+
+                    // Si solo hay un municipio, seleccionarlo automáticamente
+                    if (municipiosData.length === 1) {
+                        setSelectedMunicipio(municipiosData[0].nombre_municipio);
+                    }
+                }
+
+                // Los datos del mapa ya vienen filtrados por el backend
+                const ee1DataResponse = await entomologicaService.getMapaEE1();
+                const formattedData = (ee1DataResponse || []).map(item => ({
+                    ...item,
+                    resultado: item.resultado ? item.resultado.toLowerCase() : 'desconocido'
+                }));
+                setEe1Data(formattedData);
+            } else {
+                // Para otros roles, cargar todos los datos
+                const [ee1DataResponse, municipiosResponse] = await Promise.all([
+                    entomologicaService.getMapaEE1(),
+                    generalService.getMunicipios()
+                ]);
+
+                const formattedData = (ee1DataResponse || []).map(item => ({
+                    ...item,
+                    resultado: item.resultado ? item.resultado.toLowerCase() : 'desconocido'
+                }));
+
+                setEe1Data(formattedData);
+                setMunicipios(municipiosResponse || []);
+            }
+        } catch (err) {
+            console.error('Error cargando datos:', err);
+            setError(`Error al cargar los datos: ${err.message}`);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // ====================================================
+    // 2. INICIALIZACIÓN DEL MAPA
+    // ====================================================
     useEffect(() => {
         const initializeMap = () => {
             if (mapInstance.current) {
@@ -132,18 +147,20 @@ const MapasEE1 = () => {
 
             setTimeout(() => {
                 if (mapRef.current && !mapInstance.current) {
-                    const defaultLat = -17.3938; 
+                    // Coordenadas exactas de Cochabamba, Bolivia
+                    const defaultLat = -17.3938;
                     const defaultLng = -66.1570;
-                    
+                    const defaultZoom = 11; // 🔎 Zoom ajustado para el valle central
+
                     try {
-                        mapInstance.current = L.map(mapRef.current).setView([defaultLat, defaultLng], 9);
-                        
+                        mapInstance.current = L.map(mapRef.current).setView([defaultLat, defaultLng], defaultZoom);
+
                         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                             attribution: '© OpenStreetMap contributors'
                         }).addTo(mapInstance.current);
-                        
+
                         setMapLoaded(true);
-                        
+
                         setTimeout(() => {
                             if (mapInstance.current) {
                                 mapInstance.current.invalidateSize();
@@ -158,7 +175,7 @@ const MapasEE1 = () => {
         };
 
         const timer = setTimeout(initializeMap, 1000);
-        
+
         return () => {
             clearTimeout(timer);
             if (mapInstance.current) {
@@ -170,68 +187,68 @@ const MapasEE1 = () => {
         };
     }, []);
 
-
-    // Función de filtrado de datos combinada
-    const filteredData = ee1Data.filter(d => {
-        const byMunicipio = selectedMunicipio === 'todos' || d.nombre_municipio === selectedMunicipio;
-        const byResultado = selectedResultado === 'todos' || d.resultado === selectedResultado;
-        const byRociado = selectedRociado === 'todos' || 
-                              d.estado_rociado === selectedRociado;
-        
-        return byMunicipio && byResultado && byRociado;
-    });
-
-
-    // Actualizar marcadores cuando cambien los datos o los filtros
+    // ====================================================
+    // 3. ACTUALIZACIÓN DE MARCADORES
+    // ====================================================
     useEffect(() => {
         if (mapInstance.current && mapLoaded) {
-            
+
             // Limpiar marcadores existentes
             markersRef.current.forEach(marker => {
-                // Usamos ! para indicar que confiamos en que mapInstance.current existe
-                mapInstance.current.removeLayer(marker); 
+                mapInstance.current.removeLayer(marker);
             });
             markersRef.current = [];
 
-            // Agregar marcadores para cada punto filtrado
-            filteredData.forEach((punto) => {
+            // Filtrar datos según los filtros seleccionados
+            let datosFiltrados;
+
+            if (selectedMunicipio === 'todos' && selectedResultado === 'todos') {
+                datosFiltrados = ee1Data;
+            } else {
+                datosFiltrados = ee1Data.filter(d => {
+                    const byMunicipio = selectedMunicipio === 'todos' || d.nombre_municipio === selectedMunicipio;
+                    const byResultado = selectedResultado === 'todos' || d.resultado === selectedResultado;
+                    return byMunicipio && byResultado;
+                });
+            }
+
+            // Agregar marcadores para cada punto EE1
+            datosFiltrados.forEach((punto, index) => {
                 if (punto.latitud && punto.longitud) {
                     const lat = parseFloat(punto.latitud);
                     const lng = parseFloat(punto.longitud);
-                    
-                    if (!isNaN(lat) && !isNaN(lng)) {
-                        const markerColor = getMarkerColorEE1(punto.resultado, punto.estado_rociado);
+
+                    // 🛡️ VALIDACIÓN ULTRA ESTRICTA: Solo coordenadas dentro de Bolivia
+                    const isValidLat = lat < -9 && lat > -25;
+                    const isValidLng = lng < -57 && lng > -70;
+
+                    if (!isNaN(lat) && !isNaN(lng) && isValidLat && isValidLng) {
+                        const markerColor = getMarkerColorEE1(punto.resultado);
                         const markerIcon = getCircleIcon(markerColor);
-                        
+
                         const marker = L.marker([lat, lng], {
                             icon: markerIcon
-                        }).addTo(mapInstance.current); // Usamos .current directamente
+                        }).addTo(mapInstance.current);
 
-                        // Ruta de detalles (asumiendo que existe una ruta para EE1)
-                        const detailPath = `/detalles-ee1/${punto.id}`; 
-
+                        // Agregar popup al marcador
                         marker.bindPopup(`
-                            <div style="text-align: left; min-width: 250px; font-size: 13px;">
+                            <div style="text-align: left; min-width: 250px;">
                                 <h4 style="margin: 0 0 8px 0; color: #333; border-bottom: 2px solid ${markerColor}; padding-bottom: 4px;">
                                     🔬 Evaluación Entomológica #${punto.id}
                                 </h4>
-                                <p style="margin: 4px 0;"><strong>Municipio:</strong> ${punto.nombre_municipio}</p>
-                                <p style="margin: 4px 0;"><strong>Comunidad:</strong> ${punto.nombre_comunidad}</p>
-                                <p style="margin: 4px 0;">
-                                    <strong>Resultado:</strong> 
+                                <p style="margin: 4px 0;"><strong>Municipio:</strong> ${punto.nombre_municipio || 'N/A'}</p>
+                                <p style="margin: 4px 0;"><strong>Comunidad:</strong> ${punto.nombre_comunidad || 'N/A'}</p>
+                                <p style="margin: 4px 0;"><strong>Resultado:</strong>
                                     <span style="color: ${markerColor}; font-weight: bold;">
-                                        ${punto.resultado.toUpperCase()}
+                                        ${(punto.resultado || 'desconocido').toUpperCase()}
                                     </span>
                                 </p>
-                                <p style="margin: 4px 0;"><strong>Estado Rociado:</strong> ${punto.estado_rociado}</p>
+                                <p style="margin: 4px 0;"><strong>Estado Rociado:</strong> ${punto.estado_rociado || 'N/A'}</p>
                                 <p style="margin: 4px 0;"><strong>Fecha Programada:</strong> ${formatFecha(punto.fecha_programada)}</p>
-                                
-                                <a href="${detailPath}" 
+                                <button onclick="window.detailNavigation(${punto.id})"
                                         style="
-                                            display: inline-block;
                                             background-color: #45B7D1;
                                             color: white;
-                                            text-decoration: none;
                                             border: none;
                                             padding: 6px 12px;
                                             border-radius: 4px;
@@ -240,7 +257,7 @@ const MapasEE1 = () => {
                                             font-size: 12px;
                                         ">
                                     Ver Detalles
-                                </a>
+                                </button>
                             </div>
                         `);
 
@@ -250,21 +267,46 @@ const MapasEE1 = () => {
             });
 
             // Ajustar la vista si hay marcadores
-            if (markersRef.current.length > 0) {
-                const group = new L.featureGroup(markersRef.current);
-                mapInstance.current.fitBounds(group.getBounds().pad(0.1));
-            } else {
-                mapInstance.current.setView([-17.3938, -66.1570], 9);
+            if (datosFiltrados.length > 0 && markersRef.current.length > 0) {
+                // ELIMINADO: fitBounds automático.
+                // REEMPLAZO: Vista fija Cochabamba.
+                mapInstance.current.setView([-17.3938, -66.1570], 11);
+            } else if (datosFiltrados.length === 0) {
+                mapInstance.current.setView([-17.3938, -66.1570], 11);
             }
         }
-    }, [filteredData, mapLoaded]);
+    }, [ee1Data, selectedMunicipio, selectedResultado, mapLoaded]);
+
+    // Configurar navegación global para popups
+    useEffect(() => {
+        window.detailNavigation = (id) => {
+            navigate(`/DetallesEE1/${id}`);
+        };
+    }, [navigate]);
+
+    // Calcular contadores
+    const datosFiltrados = ee1Data.filter(d => {
+        const byMunicipio = selectedMunicipio === 'todos' || d.nombre_municipio === selectedMunicipio;
+        const byResultado = selectedResultado === 'todos' || d.resultado === selectedResultado;
+        return byMunicipio && byResultado;
+    });
+
+    const totalPositivos = datosFiltrados.filter(d => d.resultado === 'positivo').length;
+    const totalNegativos = datosFiltrados.filter(d => d.resultado === 'negativo').length;
+
+    const handleMunicipioChange = (municipio) => {
+        setSelectedMunicipio(municipio);
+    };
+
+    const handleResultadoChange = (resultado) => {
+        setSelectedResultado(resultado);
+    };
 
     const centerMapOnDefault = () => {
         if (mapInstance.current) {
-            mapInstance.current.setView([-17.3938, -66.1570], 9);
+            mapInstance.current.setView([-17.3938, -66.1570], 10);
         }
     };
-
 
     if (loading) {
         return (
@@ -277,69 +319,70 @@ const MapasEE1 = () => {
     return (
         <div className="mapas-container">
             <div className="mapas-header">
-                <div style={{ flexGrow: 1 }}>
+                <div className="header-text">
                     <h1>MAPA DE EVALUACIÓN ENTOMOLÓGICA 1 (EE1)</h1>
-                    <p>Visualización de puntos de Evaluación Entomológica y su estado de rociado asociado.</p>
+                    <p>Visualización de puntos de Evaluación Entomológica y su estado de rociado asociado</p>
                 </div>
-                {/* BOTÓN AGREGADO AQUÍ */}
-                <button 
+
+                <button
                     onClick={navigateToDatosEE1}
-                    style={{
-                        backgroundColor: '#ffc107', // Color distintivo para el botón alternativo
-                        color: '#333',
-                        border: 'none',
-                        padding: '10px 15px',
-                        borderRadius: '6px',
-                        cursor: 'pointer',
-                        fontWeight: 'bold',
-                        fontSize: '14px',
-                        marginLeft: '20px',
-                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                    }}
-                    title="Ver los datos en formato de tabla"
+                    className="btn-tabular"
                 >
-                    📋 Ver Datos Tabulares (Alternativa)
+                    📋 Ver Datos Tabulares
                 </button>
             </div>
 
             {error && (
-                <div className="error-box">
+                <div className="error">
                     {error}
-                    <button 
-                        onClick={() => window.location.reload()} 
+                    <button
+                        onClick={loadData}
                         className="btn-retry"
                     >
-                        Reintentar Carga
+                        Reintentar
                     </button>
                 </div>
             )}
 
             <div className="mapas-filters">
-                {/* FILTRO POR MUNICIPIO */}
                 <div className="filter-group">
                     <label htmlFor="municipio-filter">Filtrar por Municipio:</label>
-                    <select 
+                    <select
                         id="municipio-filter"
-                        value={selectedMunicipio} 
-                        onChange={(e) => setSelectedMunicipio(e.target.value)}
+                        value={selectedMunicipio}
+                        onChange={(e) => handleMunicipioChange(e.target.value)}
                         className="estado-filter"
+                        disabled={usuario?.rol === 'supervisor' && municipios.length === 1}
                     >
-                        <option value="todos">Todos los Municipios</option>
-                        {municipios.map(m => (
-                            <option key={m.municipio_id} value={m.nombre_municipio}>
-                                {m.nombre_municipio}
-                            </option>
-                        ))}
+                        {usuario?.rol === 'supervisor' && municipios.length === 1 ? (
+                            municipios.map(m => (
+                                <option key={m.municipio_id} value={m.nombre_municipio}>
+                                    {m.nombre_municipio}
+                                </option>
+                            ))
+                        ) : (
+                            <>
+                                <option value="todos">Todos los Municipios</option>
+                                {municipios.map(m => (
+                                    <option key={m.municipio_id} value={m.nombre_municipio}>
+                                        {m.nombre_municipio}
+                                    </option>
+                                ))}
+                            </>
+                        )}
                     </select>
+                    {usuario?.rol === 'supervisor' && municipios.length === 1 && (
+                        <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
+                            (Solo su municipio asignado)
+                        </span>
+                    )}
                 </div>
-                
-                {/* FILTRO POR RESULTADO */}
                 <div className="filter-group">
                     <label htmlFor="resultado-filter">Filtrar por Resultado:</label>
-                    <select 
+                    <select
                         id="resultado-filter"
-                        value={selectedResultado} 
-                        onChange={(e) => setSelectedResultado(e.target.value)}
+                        value={selectedResultado}
+                        onChange={(e) => handleResultadoChange(e.target.value)}
                         className="estado-filter"
                     >
                         <option value="todos">Todos los Resultados</option>
@@ -347,25 +390,27 @@ const MapasEE1 = () => {
                         <option value="negativo">Negativo</option>
                     </select>
                 </div>
+                <div className="filter-info">
+                    <span>Mostrando: <strong>{datosFiltrados.length}</strong> registros EE1</span>
+                </div>
+            </div>
 
-                {/* FILTRO POR ESTADO DE ROCIADO */}
-                <div className="filter-group">
-                    <label htmlFor="rociado-filter">Filtrar por Estado de Rociado:</label>
-                    <select 
-                        id="rociado-filter"
-                        value={selectedRociado} 
-                        onChange={(e) => setSelectedRociado(e.target.value)}
-                        className="estado-filter"
-                    >
-                        <option value="todos">Todos los Estados</option>
-                        <option value="Rociado Realizado">Rociado Realizado</option>
-                        <option value="Pendiente de Rociado">Pendiente de Rociado</option>
-                        <option value="No Requiere Rociado">No Requiere Rociado</option>
-                    </select>
+            {/* Contadores */}
+            <div className="mapas-counter">
+                {/* Tarjeta Positivos */}
+                <div className="counter-card positivo">
+                    {/* Usar un icono (ejemplo: un pulgar arriba si usas Font Awesome) */}
+                    {/* <i className="counter-icon fas fa-thumbs-up"></i> */}
+                    <div className="counter-label">Positivos</div>
+                    <div className="counter-number">{totalPositivos}</div>
                 </div>
 
-                <div className="filter-info">
-                    <span>Mostrando: **{filteredData.length}** registros EE1</span>
+                {/* Tarjeta Negativos */}
+                <div className="counter-card negativo">
+                    {/* Usar un icono (ejemplo: un pulgar abajo si usas Font Awesome) */}
+                    {/* <i className="counter-icon fas fa-thumbs-down"></i> */}
+                    <div className="counter-label">Negativos</div>
+                    <div className="counter-number">{totalNegativos}</div>
                 </div>
             </div>
 
@@ -374,25 +419,18 @@ const MapasEE1 = () => {
                     <div className="mapas-legend">
                         <h3>Leyenda EE1</h3>
                         <div className="legend-items">
-                            <p style={{marginTop: '10px', fontWeight: 'bold'}}>Resultado Positivo:</p>
                             <div className="legend-item">
-                                <span className="legend-dot" style={{ backgroundColor: getMarkerColorEE1('positivo', 'Pendiente de Rociado') }}></span>
-                                <span>Pendiente de Rociado (Riesgo Alto)</span>
+                                <span className="legend-dot" style={{ backgroundColor: COLOR_POSITIVO }}></span>
+                                <span>Positivo</span>
                             </div>
                             <div className="legend-item">
-                                <span className="legend-dot" style={{ backgroundColor: getMarkerColorEE1('positivo', 'Rociado Realizado') }}></span>
-                                <span>Rociado Realizado (Positivo Controlado)</span>
-                            </div>
-                            
-                            <p style={{marginTop: '10px', fontWeight: 'bold'}}>Resultado Negativo:</p>
-                            <div className="legend-item">
-                                <span className="legend-dot" style={{ backgroundColor: getMarkerColorEE1('negativo', 'No Requiere Rociado') }}></span>
-                                <span>Negativo / No Requiere Rociado</span>
+                                <span className="legend-dot" style={{ backgroundColor: COLOR_NEGATIVO }}></span>
+                                <span>Negativo</span>
                             </div>
                         </div>
-                        
+
                         <div className="mapas-controls">
-                            <button 
+                            <button
                                 className="btn-center-map"
                                 onClick={centerMapOnDefault}
                                 title="Centrar Mapa"
@@ -410,11 +448,11 @@ const MapasEE1 = () => {
                             <p>Cargando mapa...</p>
                         </div>
                     )}
-                    <div 
-                        ref={mapRef} 
+                    <div
+                        ref={mapRef}
                         className="mapas-map"
-                        style={{ 
-                            height: '600px', 
+                        style={{
+                            height: '600px',
                             width: '100%',
                             display: mapLoaded ? 'block' : 'none'
                         }}
@@ -424,8 +462,8 @@ const MapasEE1 = () => {
 
             <div className="mapas-info">
                 <p>
-                    <strong>Instrucciones:</strong> Este mapa muestra los resultados de las Evaluaciones Entomológicas (EE1). 
-                    Los marcadores se colorean según si el resultado fue positivo/negativo y si el rociado ya fue realizado.
+                    <strong>Instrucciones:</strong> Este mapa muestra los resultados de las Evaluaciones Entomológicas (EE1).
+                    Los marcadores se colorean según si el resultado fue positivo (Rojo) o negativo (Verde).
                 </p>
             </div>
         </div>

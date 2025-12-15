@@ -8,10 +8,10 @@ import "../../css/Manejo.css";
 function Manejo() {
   const navigate = useNavigate();
   const { user, hasRole, isAuthenticated } = useAuth();
-  
+
   // Verificar acceso general a la página
-  const { hasAccess, isLoading } = useRouteAccess(['tecnico', 'jefe_grupo', 'administrador']);
-  
+  const { hasAccess, isLoading } = useRouteAccess(['tecnico', 'jefe_grupo', 'administrador', 'supervisor']);
+
   if (isLoading) {
     return (
       <div className="manejo-page">
@@ -22,7 +22,7 @@ function Manejo() {
       </div>
     );
   }
-  
+
   if (!hasAccess) {
     return <SinAcceso />;
   }
@@ -33,8 +33,8 @@ function Manejo() {
       titulo: 'Formulario RR1',
       descripcion: 'Registro de actividades de rociado por vivienda',
       icono: '📝',
-      ruta: '/admin/RR1',
-      roles: ['tecnico', 'jefe_grupo', 'administrador']
+      ruta: '../CargaRociado',
+      roles: ['tecnico', 'jefe_grupo', 'administrador', 'supervisor']
     },
     {
       id: 'rr2',
@@ -42,7 +42,7 @@ function Manejo() {
       descripcion: 'Consolidado mensual de rociado por comunidad',
       icono: '📊',
       ruta: '/admin/RR2',
-      roles: ['jefe_grupo', 'administrador']
+      roles: ['jefe_grupo', 'administrador', 'supervisor']
     },
     {
       id: 'rr3',
@@ -50,7 +50,7 @@ function Manejo() {
       descripcion: 'Consolidado mensual de rociado por municipio',
       icono: '🏢',
       ruta: '/admin/RR3',
-      roles: ['jefe_grupo', 'administrador']
+      roles: ['jefe_grupo', 'administrador', 'supervisor']
     },
     {
       id: 'ee1',
@@ -58,7 +58,7 @@ function Manejo() {
       descripcion: 'Registro de evaluaciones entomológicas',
       icono: '🔍',
       ruta: '/admin/EE1',
-      roles: ['tecnico', 'jefe_grupo', 'administrador']
+      roles: ['tecnico', 'jefe_grupo', 'administrador', 'supervisor']
     },
     {
       id: 'ee2',
@@ -66,7 +66,7 @@ function Manejo() {
       descripcion: 'Consolidado mensual de evaluacion por comunidad',
       icono: '📊',
       ruta: '/admin/EE2',
-      roles: ['jefe_grupo', 'administrador']
+      roles: ['jefe_grupo', 'administrador', 'supervisor']
     },
     {
       id: 'ee3',
@@ -74,7 +74,7 @@ function Manejo() {
       descripcion: 'Consolidado mensual de evaluacion por municipio',
       icono: '🏢',
       ruta: '/admin/EE3',
-      roles: ['jefe_grupo', 'administrador']
+      roles: ['jefe_grupo', 'administrador', 'supervisor']
     }
   ];
 
@@ -101,7 +101,7 @@ function Manejo() {
           <div className="opciones-grid">
             {opciones.map((opcion) => {
               const tieneAcceso = hasRole(opcion.roles);
-              
+
               return (
                 <div
                   key={opcion.id}
@@ -146,6 +146,10 @@ function Manejo() {
               <div className="permiso-item">
                 <span className="permiso-rol">🔧 Administrador</span>
                 <span className="permiso-desc">Puede: RR1, RR2, RR3, EE1, EE2, EE3</span>
+              </div>
+              <div className="permiso-item">
+                <span className="permiso-rol">👮 Supervisor</span>
+                <span className="permiso-desc">Puede: RR1, RR2, RR3, EE1, EE2, EE3 (solo su municipio)</span>
               </div>
             </div>
           </div>

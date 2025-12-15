@@ -6,7 +6,7 @@ import "../../css/EE1.css";
 import { useAuth } from "../AuthContext";
 import { useRouteAccess } from "../AuthContext";
 import SinAcceso from "../SinAcceso";
-import { baseUrl } from "../../api/BaseUrl"; 
+import { baseUrl } from "../../api/BaseUrl";
 
 /* ============================== Leaflet: icono ============================== */
 delete L.Icon.Default.prototype._getIconUrl;
@@ -23,13 +23,11 @@ L.Icon.Default.mergeOptions({
 const DEFAULT_CENTER = { lat: -17.3895, lng: -66.1568, altura: 0 };
 const API_URL = `${baseUrl}/api`;
 
-
 /**
  * Campos que SÍ o SÍ deben llenarse cuando el resultado es POSITIVO
+ * (SIN fecha_programada ni hora_programada)
  */
 const POSITIVE_FIELDS = [
-  "fecha_programada",
-  "hora_programada",
   "intra_ninfas",
   "intra_adulta",
   "peri_ninfa",
@@ -48,10 +46,9 @@ const POSITIVE_FIELDS = [
 
 /**
  * Objeto base vacío para cuando se cambia a "positivo"
+ * (SIN fecha_programada ni hora_programada)
  */
 const EMPTY_POSITIVE_BLOCK = {
-  fecha_programada: "",
-  hora_programada: "",
   intra_ninfas: "",
   intra_adulta: "",
   peri_ninfa: "",
@@ -132,9 +129,9 @@ const EvaluacionesEntomologicasEE1 = () => {
   const formRef = useRef(null);
   const [centerTrigger, setCenterTrigger] = useState(0);
   const { usuario, isAuthenticated } = useAuth();
-  
+
   // Verificar acceso usando el hook de rutas - SOLO PARA ROLES ESPECÍFICOS
-  const { hasAccess, isLoading: accessLoading } = useRouteAccess(["tecnico", "jefe_grupo", "administrador"]);
+  const { hasAccess, isLoading: accessLoading } = useRouteAccess(["tecnico", "jefe_grupo", "administrador", "supervisor"]);
 
   /* ------------------------------ Estados base ------------------------------ */
   const [evalData, setEvalData] = useState({
@@ -206,6 +203,15 @@ const EvaluacionesEntomologicasEE1 = () => {
 
   const [editId, setEditId] = useState(null);
   const [fechaError, setFechaError] = useState("");
+
+  // Nuevos estados para VER y ELIMINAR
+  const [verData, setVerData] = useState(null);
+
+  const irArriba = () => {
+    setTimeout(() => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }, 100);
+  };
 
   /* ------------------------------ Carga de combos ------------------------------ */
   const cargarTecnicos = async () => {
@@ -426,7 +432,7 @@ const EvaluacionesEntomologicasEE1 = () => {
         e.target.value = '';
         return;
       }
-      
+
       // Validar tamaño (máximo 5MB)
       if (file.size > 5 * 1024 * 1024) {
         setError("❌ La imagen no debe superar los 5MB");
@@ -462,7 +468,7 @@ const EvaluacionesEntomologicasEE1 = () => {
   const obtenerUbicacionUsuario = () => {
     if (!navigator.geolocation)
       return setError("La geolocalización no es soportada por este navegador");
-    
+
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
         const { latitude, longitude } = pos.coords;
@@ -530,7 +536,7 @@ const EvaluacionesEntomologicasEE1 = () => {
     return n;
   };
 
-  // Validación de fechas mejorada
+  // Validación de fechas mejorada (SIN validación de fecha programada futura)
   const validarFechas = () => {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
@@ -551,13 +557,7 @@ const EvaluacionesEntomologicasEE1 = () => {
       }
     }
 
-    // Validar fecha programada sea futura (solo para positivos)
-    if (evalData.resultado === "positivo" && ee1Data.fecha_programada) {
-      const fechaProgramada = new Date(ee1Data.fecha_programada);
-      if (fechaProgramada <= hoy) {
-        throw new Error("❌ La fecha programada debe ser futura");
-      }
-    }
+    // VALIDACIÓN DE FECHA PROGRAMADA FUTURA ELIMINADA (ya no existe este campo)
 
     // Validar que fecha último rociado no sea posterior a fecha evaluación
     if (evalData.fecha_ultimo_rociado && evalData.fecha_evaluacion) {
@@ -576,7 +576,7 @@ const EvaluacionesEntomologicasEE1 = () => {
     if (evalData.fecha_ultimo_rociado && evalData.fecha_evaluacion) {
       const fechaRociado = new Date(evalData.fecha_ultimo_rociado);
       const fechaEval = new Date(evalData.fecha_evaluacion);
-      
+
       if (fechaRociado > fechaEval) {
         setFechaError("⚠️ El último rociado NO puede ser posterior a la evaluación");
         return false;
@@ -637,6 +637,45 @@ const EvaluacionesEntomologicasEE1 = () => {
     }
   };
 
+  /* ------------------------------ Funciones CRUD completas ------------------------------ */
+
+  // VER evaluación
+  const verEvaluacion = async (id) => {
+    try {
+      const r = await fetch(`${API_URL}/ee1/${id}`);
+      const j = await r.json();
+      if (j.success) setVerData(j.data);
+      else alert("❌ No se pudo cargar la evaluación");
+    } catch (err) {
+      alert("❌ Error al obtener los datos");
+      console.error(err);
+    }
+  };
+
+  // ELIMINAR evaluación
+  const eliminarEvaluacion = async (id) => {
+    if (!window.confirm("¿Eliminar definitivamente esta evaluación?")) return;
+
+    try {
+      const resp = await fetch(`${API_URL}/ee1/${id}`, {
+        method: "DELETE",
+      });
+
+      const json = await resp.json();
+
+      if (!json.success) {
+        throw new Error(json.message || "Error al eliminar");
+      }
+
+      alert("🗑️ Evaluación eliminada");
+      cargarRegistrosUsuario();
+
+    } catch (error) {
+      console.error(error);
+      alert("❌ No se pudo eliminar la evaluación");
+    }
+  };
+
   /* ------------------------------ Editar ------------------------------ */
   const cargarEnEdicion = (row) => {
     setEditId(row.evaluacion_id);
@@ -694,10 +733,7 @@ const EvaluacionesEntomologicasEE1 = () => {
 
     setEe1Data((p) => ({
       ...p,
-      fecha_programada: row.fecha_programada
-        ? row.fecha_programada.substring(0, 10)
-        : "",
-      hora_programada: row.hora_programada || "",
+      // FECHA_PROGRAMADA y HORA_PROGRAMADA ELIMINADAS
       intra_ninfas: row.intra_ninfas ?? "",
       intra_adulta: row.intra_adulta ?? "",
       peri_ninfa: row.peri_ninfa ?? "",
@@ -723,7 +759,11 @@ const EvaluacionesEntomologicasEE1 = () => {
     );
 
     setCenterTrigger((v) => v + 1);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+      const top = document.getElementById("edit-top");
+      if (top) top.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   const cancelarEdicion = () => {
@@ -779,7 +819,7 @@ const EvaluacionesEntomologicasEE1 = () => {
         throw new Error("Debe seleccionar al menos un jefe de grupo (obligatorio).");
       }
 
-      // Validaciones de fecha (sin validación de horas)
+      // Validaciones de fecha (sin validación de fecha programada)
       validarFechas();
 
       // Jefes únicos (máx 4)
@@ -854,8 +894,16 @@ const EvaluacionesEntomologicasEE1 = () => {
         formData.append("foto_entrada_existente", fotoExistente);
       }
 
+      // Solo enviar campos EE1 para positivos (SIN fecha/hora programada)
       if (evalData.resultado === "positivo") {
-        Object.keys(ee1Data).forEach((k) => formData.append(k, ee1Data[k]));
+        const camposPositivos = [
+          "intra_ninfas", "intra_adulta",
+          "peri_ninfa", "peri_adulta",
+          "intra_pared", "intra_techo", "intra_cama", "intra_otros",
+          "peri_pared", "peri_corral", "peri_gallinero", "peri_conejera",
+          "peri_zarzo_troje", "peri_otros"
+        ];
+        camposPositivos.forEach(k => formData.append(k, ee1Data[k]));
       }
 
       const url = editId ? `${API_URL}/ee1/${editId}` : `${API_URL}/ee1`;
@@ -950,21 +998,19 @@ const EvaluacionesEntomologicasEE1 = () => {
   return (
     <div className="ee1">
       <div className="container">
-        <h2>
-          🦟 Evaluaciones Entomológicas {editId ? "— Editando #" + editId : ""}
-        </h2>
-
-        <div
-          style={{
-            backgroundColor: "#e8f5e8",
-            padding: "12px",
-            borderRadius: "4px",
-            marginBottom: "1rem",
-            border: "1px solid #c8e6c9",
-          }}
-        >
-          <strong>Usuario:</strong> {userName} | <strong>Rol:</strong> {userRole} |{" "}
-          <strong>ID:</strong> {userId}
+        {/* Header profesional */}
+        <div className="ee1-header">
+          <h1>🦟 Evaluaciones Entomológicas (EE1)</h1>
+          <p className="subtitle">
+            {editId ? `Editando registro #${editId}` : "Registro de evaluación ent omológica"}
+          </p>
+          <div className="user-info-badge">
+            <span className="badge-item"><strong>Usuario:</strong> {userName}</span>
+            <span className="badge-divider">|</span>
+            <span className="badge-item"><strong>Rol:</strong> {userRole}</span>
+            <span className="badge-divider">|</span>
+            <span className="badge-item"><strong>ID:</strong> {userId}</span>
+          </div>
         </div>
 
         {error && (
@@ -1045,8 +1091,8 @@ const EvaluacionesEntomologicasEE1 = () => {
                     {cargandoOpciones.comunidades
                       ? "Cargando comunidades..."
                       : !evalData.municipio_id
-                      ? "Primero seleccione un municipio"
-                      : "Seleccione una comunidad"}
+                        ? "Primero seleccione un municipio"
+                        : "Seleccione una comunidad"}
                   </option>
                   {comunidadesFiltradas.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -1093,8 +1139,8 @@ const EvaluacionesEntomologicasEE1 = () => {
                     {cargandoOpciones.redes
                       ? "Cargando redes..."
                       : !evalData.sede_id
-                      ? "Primero seleccione una sede"
-                      : "Seleccione una red de salud"}
+                        ? "Primero seleccione una sede"
+                        : "Seleccione una red de salud"}
                   </option>
                   {redesFiltradas.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -1117,8 +1163,8 @@ const EvaluacionesEntomologicasEE1 = () => {
                     {cargandoOpciones.establecimientos
                       ? "Cargando establecimientos..."
                       : !evalData.redsalud_id
-                      ? "Primero seleccione una red de salud"
-                      : "Seleccione un establecimiento"}
+                        ? "Primero seleccione una red de salud"
+                        : "Seleccione un establecimiento"}
                   </option>
                   {establecimientosFiltrados.map((e) => (
                     <option key={e.id} value={e.id}>
@@ -1354,57 +1400,37 @@ const EvaluacionesEntomologicasEE1 = () => {
                 </div>
               </div>
 
-              {/* ====================== MAPA ====================== */}
-              <div className="form-row">
-                <div
-                  className="form-group map-wrapper"
-                  style={{ flex: "1 1 100%" }}
-                >
-                  <label>Ubicación en el mapa</label>
-                  <div
-                    style={{
-                      height: 420,
-                      width: "100%",
-                      marginBottom: "1rem",
-                      position: "relative",
-                    }}
+              {/* ====================== MAPA FULL WIDTH ====================== */}
+              <div className="map-section-full">
+                <label className="map-label">Ubicación en el mapa</label>
+                <div className="map-wrapper">
+                  <button
+                    type="button"
+                    onClick={obtenerUbicacionUsuario}
+                    className="btn-location"
                   >
-                    <MapContainer
-                      center={[markerPos.lat, markerPos.lng]}
-                      zoom={17}
-                      style={{ height: "100%", width: "100%" }}
-                      whenCreated={(m) => (mapRef.current = m)}
-                      zoomControl={true}
-                    >
-                      <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution="&copy; OpenStreetMap contributors"
-                      />
-                      <MapController
-                        markerPos={markerPos}
-                        setMarkerPos={setMarkerPos}
-                        onPositionChange={manejarCambioPosicion}
-                        centerMap={centerTrigger}
-                      />
-                    </MapContainer>
+                    📍 USAR MI UBICACIÓN
+                  </button>
 
-                    <button
-                      type="button"
-                      onClick={obtenerUbicacionUsuario}
-                      className="btn btn-light"
-                      style={{
-                        position: "absolute",
-                        top: 10,
-                        right: 10,
-                        zIndex: 1000,
-                        padding: "8px 12px",
-                        fontSize: 12,
-                        fontWeight: "bold",
-                      }}
-                    >
-                      📍 Usar mi ubicación
-                    </button>
-                  </div>
+                  <MapContainer
+                    center={[markerPos.lat, markerPos.lng]}
+                    zoom={17}
+                    className="leaflet-container"
+                    whenCreated={(m) => (mapRef.current = m)}
+                    zoomControl={true}
+                  >
+                    <TileLayer
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                      attribution="&copy; OpenStreetMap contributors"
+                    />
+
+                    <MapController
+                      markerPos={markerPos}
+                      setMarkerPos={setMarkerPos}
+                      onPositionChange={manejarCambioPosicion}
+                      centerMap={centerTrigger}
+                    />
+                  </MapContainer>
                 </div>
               </div>
 
@@ -1478,34 +1504,12 @@ const EvaluacionesEntomologicasEE1 = () => {
             </div>
           </div>
 
-          {/* ====================== DETALLES EE1 (solo positivo) ====================== */}
+          {/* ====================== DETALLES EE1 (solo positivo) - SIN FECHA/HORA PROGRAMADA ====================== */}
           {evalData.resultado === "positivo" && (
             <div className="section">
               <h3>🪲 EE1 - Detalles de Capturas</h3>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>Fecha Programada *</label>
-                  <input
-                    type="date"
-                    name="fecha_programada"
-                    value={ee1Data.fecha_programada}
-                    onChange={handleEe1Change}
-                    min={new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split("T")[0]}
-                    required
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Hora Programada *</label>
-                  <input
-                    type="time"
-                    name="hora_programada"
-                    value={ee1Data.hora_programada}
-                    onChange={handleEe1Change}
-                    required
-                  />
-                </div>
-              </div>
+              {/* ELIMINADO BLOQUE COMPLETO DE FECHA/HORA PROGRAMADA */}
 
               {/* Conteos */}
               <div className="form-row">
@@ -1681,8 +1685,8 @@ const EvaluacionesEntomologicasEE1 = () => {
               {guardando
                 ? "⏳ Guardando..."
                 : editId
-                ? "💾 Actualizar"
-                : "💾 Guardar en Base de Datos"}
+                  ? "💾 Actualizar"
+                  : "💾 Guardar en Base de Datos"}
             </button>
 
             {editId && (
@@ -1822,13 +1826,32 @@ const EvaluacionesEntomologicasEE1 = () => {
                         </span>
                       )}
                     </td>
-                    <td>
+                    <td style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        type="button"
+                        className="btn btn-info"
+                        onClick={() => verEvaluacion(r.evaluacion_id)}
+                      >
+                        👁️ Ver
+                      </button>
+
                       <button
                         type="button"
                         className="btn btn-light"
-                        onClick={() => cargarEnEdicion(r)}
+                        onClick={() => {
+                          cargarEnEdicion(r);
+                          irArriba();
+                        }}
                       >
                         ✏️ Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => eliminarEvaluacion(r.evaluacion_id)}
+                      >
+                        🗑️ Eliminar
                       </button>
                     </td>
                   </tr>
@@ -1844,6 +1867,103 @@ const EvaluacionesEntomologicasEE1 = () => {
           )}
         </div>
       </div>
+
+      {/* ====================== MODAL PARA VER DETALLES (SIN FECHA/HORA PROGRAMADA) ====================== */}
+      {verData && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: 800 }}>
+
+            <h3>📄 Detalles de la Evaluación #{verData.evaluacion_id}</h3>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+              <div>
+                <p><strong>Técnico:</strong> {verData.tecnico_nombre}</p>
+                <p><strong>Municipio:</strong> {verData.municipio_nombre}</p>
+                <p><strong>Comunidad:</strong> {verData.comunidad_nombre}</p>
+                <p><strong>Jefe Familia:</strong> {verData.jefe_familia}</p>
+                <p><strong>N° Vivienda:</strong> {verData.numero_vivienda}</p>
+                <p><strong>Resultado:</strong>
+                  <span style={{
+                    color: verData.resultado === 'positivo' ? 'red' : 'green',
+                    fontWeight: "bold",
+                    marginLeft: "5px"
+                  }}>
+                    {verData.resultado?.toUpperCase()}
+                  </span>
+                </p>
+              </div>
+
+              <div>
+                <p><strong>Fecha Evaluación:</strong>
+                  {new Date(verData.fecha_evaluacion).toLocaleDateString()}
+                </p>
+                <p><strong>Último Rociado:</strong>
+                  {verData.fecha_ultimo_rociado
+                    ? new Date(verData.fecha_ultimo_rociado).toLocaleDateString()
+                    : "N/A"}
+                </p>
+                <p><strong>Habitantes:</strong> {verData.numero_habitantes}</p>
+                <p><strong>Habitaciones:</strong> {verData.numero_habitaciones}</p>
+                <p><strong>Altura:</strong> {verData.altura} m</p>
+                <p><strong>Coordenadas:</strong> {Number(verData.latitud)?.toFixed(6)}, {Number(verData.longitud)?.toFixed(6)}</p>
+              </div>
+            </div>
+
+            <div style={{ marginTop: "15px" }}>
+              <p><strong>Jefes de Grupo:</strong></p>
+              <ul>
+                {[verData.jefe1_nombre, verData.jefe2_nombre, verData.jefe3_nombre, verData.jefe4_nombre]
+                  .filter(Boolean)
+                  .map((nombre, index) => (
+                    <li key={index}>{nombre}</li>
+                  ))}
+              </ul>
+            </div>
+
+            {verData.resultado === "positivo" && (
+              <>
+                <h4>🪲 Capturas EE1</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px" }}>
+                  <div>
+                    {/* ELIMINADO: FECHA PROGRAMADA Y HORA PROGRAMADA */}
+                    <p><strong>Total ninfas:</strong> {verData.total_ninfas}</p>
+                    <p><strong>Total adultas:</strong> {verData.total_adultas}</p>
+                  </div>
+                  <div>
+                    <p><strong>Intra:</strong> Ninfas: {verData.intra_ninfas}, Adultas: {verData.intra_adulta}</p>
+                    <p><strong>Peri:</strong> Ninfas: {verData.peri_ninfa}, Adultas: {verData.peri_adulta}</p>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {verData.foto_entrada && (
+              <div style={{ marginTop: "15px" }}>
+                <p><strong>Foto de Entrada:</strong></p>
+                <img
+                  src={`${baseUrl}/uploads/${verData.foto_entrada}`}
+                  style={{
+                    width: "100%",
+                    maxWidth: "500px",
+                    borderRadius: 6,
+                    marginTop: 10,
+                    border: "1px solid #ddd"
+                  }}
+                  alt="Foto de la evaluación"
+                />
+              </div>
+            )}
+
+            <button
+              className="btn btn-light"
+              onClick={() => setVerData(null)}
+              style={{ marginTop: 20 }}
+            >
+              ❌ Cerrar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

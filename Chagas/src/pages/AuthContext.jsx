@@ -15,42 +15,56 @@ export const AuthProvider = ({ children }) => {
     userType: 'invitado',
     usuario: null,
     user: null,
+    token: null,
     isLoading: true
   });
 
   // Función para normalizar el rol
   const normalizeRole = (role) => {
     if (!role) return 'invitado';
-    
-    const roleMap = {// Corregido: con doble 'p' como en tu BD
-      'jefe_grupo': 'jefe_grupo',  // Por si acaso hay variaciones
+
+    // Normalizar a minúsculas para evitar problemas de case-sensitivity
+    const lowerRole = role.toLowerCase();
+
+    const roleMap = {
+      'jefe_grupo': 'jefe_grupo',
+      'jefegrupo': 'jefe_grupo', // Variaciones comunes
       'tecnico': 'tecnico',
+      'técnico': 'tecnico', // Con tilde
       'administrador': 'administrador',
+      'admin': 'administrador',
       'usuario': 'usuario',
+      'supervisor': 'supervisor'
     };
-    
-    return roleMap[role] || role;
+
+    return roleMap[lowerRole] || lowerRole;
   };
 
   // Función para actualizar el estado de autenticación
   const updateAuthState = () => {
     try {
       const usuarioGuardado = JSON.parse(localStorage.getItem('usuario'));
-      
+      const tokenGuardado = localStorage.getItem('token');
+
       if (usuarioGuardado && usuarioGuardado.rol) {
+        console.log('🔄 AuthContext: Recuperando usuario de localStorage', usuarioGuardado);
         const normalizedRole = normalizeRole(usuarioGuardado.rol);
-        
+        console.log(`🔄 AuthContext: Rol recuperado "${usuarioGuardado.rol}" -> Normalizado "${normalizedRole}"`);
+
         setAuthState({
           userType: normalizedRole,
           usuario: usuarioGuardado,
           user: usuarioGuardado,
+          token: tokenGuardado,
           isLoading: false
         });
       } else {
+        console.log('🔄 AuthContext: No se encontró usuario válido en localStorage');
         setAuthState({
           userType: 'invitado',
           usuario: null,
           user: null,
+          token: null,
           isLoading: false
         });
       }
@@ -60,6 +74,7 @@ export const AuthProvider = ({ children }) => {
         userType: 'invitado',
         usuario: null,
         user: null,
+        token: null,
         isLoading: false
       });
     }
@@ -72,7 +87,7 @@ export const AuthProvider = ({ children }) => {
         ...usuarioData,
         rol: normalizeRole(usuarioData.rol)
       };
-      
+
       localStorage.setItem('token', token);
       localStorage.setItem('usuario', JSON.stringify(userWithNormalizedRole));
       updateAuthState();
@@ -90,6 +105,7 @@ export const AuthProvider = ({ children }) => {
         userType: 'invitado',
         usuario: null,
         user: null,
+        token: null,
         isLoading: false
       });
     } catch (error) {
@@ -101,15 +117,16 @@ export const AuthProvider = ({ children }) => {
   const hasRole = (allowedRoles) => {
     if (!allowedRoles || allowedRoles.length === 0) return true;
     if (authState.userType === 'invitado') return false;
-    
+
     return allowedRoles.includes(authState.userType);
   };
 
   // Función para verificar permisos específicos
   const hasPermission = (requiredPermission) => {
     const permissions = {
-      'administrador': ['rr1', 'rr2', 'rr3', 'ee1', 'manage_users', 'view_reports'],
-      'jefe_gruppo': ['rr1', 'rr2', 'rr3', 'ee1', 'view_reports'],
+      'administrador': ['rr1', 'rr2', 'rr3', 'ee1', 'ee2', 'ee3', 'manage_users', 'view_reports'],
+      'supervisor': ['rr1', 'rr2', 'rr3', 'ee1', 'ee2', 'ee3', 'manage_users', 'view_reports'],
+      'jefe_grupo': ['rr1', 'rr2', 'rr3', 'ee1', 'ee2', 'ee3', 'manage_users', 'view_reports'],
       'tecnico': ['rr1', 'ee1'],
       'usuario': ['view_basic']
     };
@@ -128,24 +145,25 @@ export const AuthProvider = ({ children }) => {
     userType: authState.userType,
     usuario: authState.usuario,
     user: authState.user,
+    token: authState.token,
     isLoading: authState.isLoading,
-    
+
     // Funciones principales
     login,
     logout,
     updateAuthState,
-    
+
     // Utilidades de verificación
     hasRole,
     hasPermission,
-    
+
     // Propiedades de conveniencia
     isAuthenticated: authState.userType !== 'invitado',
     isAdmin: authState.userType === 'administrador',
     isJefeGrupo: authState.userType === 'jefe_grupo',
     isTecnico: authState.userType === 'tecnico',
     isUsuario: authState.userType === 'usuario',
-    
+
     // Compatibilidad con código existente
     rol: authState.userType
   };
@@ -160,11 +178,11 @@ export const AuthProvider = ({ children }) => {
 // Hook personalizado para verificar acceso a rutas
 export const useRouteAccess = (allowedRoles = []) => {
   const { hasRole, isAuthenticated, isLoading } = useAuth();
-  
+
   if (isLoading) {
     return { hasAccess: false, isLoading: true };
   }
-  
+
   return {
     hasAccess: isAuthenticated && (allowedRoles.length === 0 || hasRole(allowedRoles)),
     isLoading: false

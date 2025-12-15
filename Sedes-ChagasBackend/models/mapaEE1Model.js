@@ -5,16 +5,17 @@ import db from "../config/db.js";
  * junto con su geolocalización, fecha, y nombres de municipio/comunidad.
  * Compatible con mysql2 (sin /promise).
  */
-export const getAllMapaEE1 = () => {
+export const getAllMapaEE1 = (municipioId = null) => {
   return new Promise((resolve, reject) => {
+    const whereClause = municipioId ? 'WHERE ee.municipio_id = ?' : '';
+    const params = municipioId ? [municipioId] : [];
+    
     const query = `
  SELECT 
         ee.evaluacion_id AS id,
         ee.latitud,
         ee.longitud,
         ee.altura,
-        dc.fecha_programada,
-        dc.hora_programada,
         ee.resultado,
         m.nombre_municipio,
         c.nombre_comunidad,
@@ -38,10 +39,11 @@ export const getAllMapaEE1 = () => {
         ON ee.comunidad_id = c.comunidad_id
       LEFT JOIN Formulario_RR1 rr1 
         ON ee.numero_vivienda = rr1.numero_vivienda 
-        AND ee.comunidad_id = rr1.comunidad_id;
+        AND ee.comunidad_id = rr1.comunidad_id
+      ${whereClause};
     `;
 
-    db.query(query, (err, results) => {
+    db.query(query, params, (err, results) => {
       if (err) {
         console.error("❌ Error en getAllMapaEE1 (Modelo):", err);
         reject(err);

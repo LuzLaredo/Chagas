@@ -7,7 +7,7 @@ import db from "../config/db.js";
  * Compatible con mysql.createConnection (sin mysql2/promise).
  * @returns {Promise<Array>} Array de objetos con datos de Denuncias y EE1.
  */
-export const getAllMapaGeneral = () => {
+export const getAllMapaGeneral = (municipioId = null) => {
   const query = `
 SELECT * FROM (
   (
@@ -21,6 +21,7 @@ SELECT * FROM (
       ee.resultado AS estado_resultado,
       m.nombre_municipio,
       c.nombre_comunidad,
+      m.municipio_id,
       -- ✅ Nuevo: si existe un registro en Formulario_RR1 con la misma vivienda, entonces ya fue rociado
       CASE  
         WHEN rr1.id_rr1 IS NOT NULL THEN 'Sí'
@@ -34,6 +35,7 @@ SELECT * FROM (
            ON rr1.numero_vivienda = ee.numero_vivienda
            AND rr1.comunidad_id = ee.comunidad_id
     WHERE ee.latitud IS NOT NULL AND ee.longitud IS NOT NULL
+    ${municipioId ? 'AND m.municipio_id = ?' : ''}
   )
 
   UNION ALL
@@ -49,19 +51,24 @@ SELECT * FROM (
       d.estado_denuncia AS estado_resultado,
       m.nombre_municipio,
       c.nombre_comunidad,
+      m.municipio_id,
       NULL AS rociado -- Las denuncias no aplican
     FROM Denuncias d
     JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
     JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
     JOIN Municipios m ON c.municipio_id = m.municipio_id
     WHERE d.latitud IS NOT NULL AND d.longitud IS NOT NULL
+    ${municipioId ? 'AND m.municipio_id = ?' : ''}
   )
 ) AS T;
 
   `;
 
   return new Promise((resolve, reject) => {
-    db.query(query, (error, results) => {
+    // Si hay municipioId, duplicar el parámetro para ambas partes del UNION
+    const queryParams = municipioId ? [municipioId, municipioId] : [];
+    
+    db.query(query, queryParams, (error, results) => {
       if (error) {
         console.error("❌ Error en getAllMapaGeneral (Modelo):", error);
         reject(error);

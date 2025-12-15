@@ -1,112 +1,172 @@
-/* Estilos para el modal de cancelar denuncia */
+/* ========== CANCELAR DENUNCIA - DISEÑO HERMOSO (CLASES REALES) ========== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
 .cancelar-denuncia-container {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100% !important;
-  height: 100% !important;
-  background: rgba(0, 0, 0, 0.8) !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center !important;
-  z-index: 99999 !important;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   padding: 20px;
-  box-sizing: border-box;
-}
-
-.cancelar-denuncia-modal {
-  background: white !important;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
+  background: linear-gradient(135deg, rgba(254, 242, 242, 0.97), rgba(254, 226, 226, 0.97)),
+    url('../assets/images/Cochabamba-Bolivia.png') no-repeat center center fixed;
+  background-size: cover;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
   overflow-y: auto;
-  position: relative;
-  z-index: 100000;
 }
 
-/* Header del modal */
+/* ========== MODAL ========== */
+.cancelar-denuncia-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15);
+  max-width: 700px;
+  width: 100%;
+  animation: zoomIn 0.5s ease;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+@keyframes zoomIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ========== HEADER ========== */
 .modal-header {
-  padding: 24px 24px 16px 24px;
-  border-bottom: 1px solid #e0e0e0;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  padding: 30px 35px;
+  border-radius: 20px 20px 0 0;
   position: relative;
 }
 
 .header-icon {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 32px;
-  height: 32px;
-  background: #2563eb;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 15px;
+  right: 15px;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .close-icon {
+  font-size: 28px;
   color: white;
-  font-size: 16px;
-  font-weight: bold;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: all 0.3s ease;
+}
+
+.close-icon:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
 }
 
 .modal-header h1 {
-  color: #1e40af;
-  font-size: 24px;
-  font-weight: bold;
-  margin: 0 0 8px 0;
+  font-size: 2rem;
+  font-weight: 800;
+  color: white;
+  margin: 0 0 10px 0;
+  letter-spacing: -0.5px;
 }
 
 .header-subtitle {
-  color: #6b7280;
-  font-size: 14px;
+  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.9);
   margin: 0;
 }
 
-/* Formulario */
+/* ========== FORMULARIO ========== */
 .cancelar-form {
-  padding: 24px;
+  padding: 35px;
 }
 
-/* Detalles de la denuncia */
+/* ========== DETALLES DE DENUNCIA ========== */
 .denuncia-details {
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 24px;
+  background: linear-gradient(135deg, #f9fafb, #f3f4f6);
+  padding: 22px 25px;
+  border-radius: 12px;
+  margin-bottom: 30px;
+  border-left: 5px solid #dc2626;
 }
 
 .denuncia-details h3 {
-  color: #374151;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 8px 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 15px 0;
 }
 
 .denuncia-details p {
-  color: #6b7280;
-  font-size: 14px;
-  margin: 4px 0;
+  font-size: 0.95rem;
+  color: #374151;
+  margin: 8px 0;
+  line-height: 1.6;
 }
 
-/* Sección de motivos */
+.denuncia-details strong {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+.estado-indicator {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  display: inline-block;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.estado-sin-revisar {
+  background: linear-gradient(135deg, #fef3c7, #fde047);
+  color: #92400e;
+}
+
+.estado-en-proceso {
+  background: linear-gradient(135deg, #dbeafe, #93c5fd);
+  color: #1e40af;
+}
+
+.estado-verificado {
+  background: linear-gradient(135deg, #d1fae5, #6ee7b7);
+  color: #065f46;
+}
+
+/* ========== MOTIVOS ========== */
 .motivo-section {
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
 .motivo-section h3 {
-  color: #374151;
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0 0 16px 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 18px 0;
 }
 
 .required {
   color: #dc2626;
+  font-weight: 800;
 }
 
 .motivos-grid {
@@ -115,232 +175,266 @@
 }
 
 .motivo-option {
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
+  background: #f9fafb;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
   padding: 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
+  gap: 14px;
   align-items: flex-start;
-  gap: 12px;
 }
 
 .motivo-option:hover {
-  border-color: #2563eb;
-  background-color: #f8fafc;
+  background: #fef2f2;
+  border-color: #fca5a5;
 }
 
 .motivo-option.selected {
-  border-color: #2563eb;
-  background-color: #eff6ff;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.15);
 }
 
 .motivo-radio {
   flex-shrink: 0;
-  margin-top: 2px;
 }
 
 .motivo-radio input[type="radio"] {
-  display: none;
-}
-
-.motivo-radio label {
-  display: block;
   width: 20px;
   height: 20px;
-  border: 2px solid #d1d5db;
-  border-radius: 50%;
   cursor: pointer;
-  position: relative;
-  transition: all 0.2s ease;
-}
-
-.motivo-radio input[type="radio"]:checked + label {
-  border-color: #2563eb;
-  background-color: #2563eb;
-}
-
-.motivo-radio input[type="radio"]:checked + label::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px;
-  height: 8px;
-  background: white;
-  border-radius: 50%;
+  accent-color: #dc2626;
 }
 
 .motivo-content h4 {
-  color: #374151;
-  font-size: 14px;
-  font-weight: 600;
-  margin: 0 0 4px 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 6px 0;
 }
 
 .motivo-content p {
+  font-size: 0.9rem;
   color: #6b7280;
-  font-size: 13px;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.5;
 }
 
-/* Sección de comentarios */
+/* ========== COMENTARIOS ========== */
 .comentarios-section {
-  margin-bottom: 24px;
+  margin-bottom: 30px;
 }
 
 .comentarios-section h3 {
-  color: #374151;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #1f2937;
   margin: 0 0 8px 0;
 }
 
 .comentarios-subtitle {
+  font-size: 0.9rem;
   color: #6b7280;
-  font-size: 14px;
   margin: 0 0 12px 0;
 }
 
 .comentarios-textarea {
   width: 100%;
-  padding: 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 14px;
-  font-family: inherit;
+  padding: 14px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  background: #f9fafb;
+  transition: all 0.2s ease;
   resize: vertical;
-  min-height: 80px;
-  box-sizing: border-box;
+  line-height: 1.6;
 }
 
 .comentarios-textarea:focus {
   outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+  border-color: #dc2626;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
-.comentarios-textarea::placeholder {
-  color: #9ca3af;
-}
-
-/* Mensaje de error */
+/* ========== MENSAJES ========== */
 .error-message {
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #dc2626;
-  padding: 12px;
-  border-radius: 6px;
-  margin-bottom: 16px;
-  font-size: 14px;
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border-left: 5px solid #dc2626;
+  margin-bottom: 20px;
+  font-weight: 600;
+  font-size: 0.95rem;
 }
 
-/* Botones de acción */
+.success-message {
+  text-align: center;
+  padding: 60px 40px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.success-message h2 {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #065f46;
+  margin: 0 0 18px 0;
+}
+
+.success-message p {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin: 12px 0;
+  line-height: 1.6;
+}
+
+.error-message-full {
+  background: white;
+  padding: 50px 40px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.error-message-full h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #dc2626;
+  margin: 0 0 16px 0;
+}
+
+.error-message-full p {
+  font-size: 1.1rem;
+  color: #6b7280;
+  margin: 12px 0 30px 0;
+  line-height: 1.6;
+}
+
+.loading-message {
+  text-align: center;
+  padding: 80px 40px;
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+/* ========== BOTONES ========== */
 .modal-actions {
   display: flex;
   gap: 12px;
   justify-content: flex-end;
-  padding-top: 16px;
-  border-top: 1px solid #e5e7eb;
+  padding-top: 25px;
+  margin-top: 25px;
+  border-top: 2px solid #f3f4f6;
 }
 
 .btn-volver,
 .btn-confirmar {
-  display: flex;
+  padding: 14px 32px;
+  border: none;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Poppins', sans-serif;
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  min-width: 140px;
-  justify-content: center;
 }
 
 .btn-volver {
-  background: #f3f4f6;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
 }
 
 .btn-volver:hover {
-  background: #e5e7eb;
+  background: #f3f4f6;
+  border-color: #d1d5db;
 }
 
 .btn-confirmar {
-  background: #dc2626;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
   color: white;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
 }
 
 .btn-confirmar:hover:not(:disabled) {
-  background: #b91c1c;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(220, 38, 38, 0.4);
 }
 
 .btn-confirmar:disabled {
   background: #9ca3af;
   cursor: not-allowed;
+  box-shadow: none;
+  opacity: 0.6;
 }
 
 .btn-icon {
-  font-size: 16px;
-  font-weight: bold;
+  font-size: 1.2rem;
+  font-weight: 400;
 }
 
-/* Mensajes de éxito y carga */
-.success-message,
-.loading-message {
-  text-align: center;
-  padding: 40px;
-  background: white !important;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  max-width: 400px;
-  width: 100%;
-  z-index: 100001;
-  position: relative;
-}
-
-.success-message h2 {
-  color: #059669;
-  margin: 0 0 16px 0;
-}
-
-.success-message p {
-  color: #6b7280;
-  margin: 8px 0;
-}
-
-.loading-message p {
-  color: #6b7280;
-  font-size: 16px;
-}
-
-/* Responsive */
+/* ========== RESPONSIVE ========== */
 @media (max-width: 768px) {
   .cancelar-denuncia-container {
-    padding: 10px;
+    padding: 15px;
   }
-  
+
   .cancelar-denuncia-modal {
-    max-height: 95vh;
+    border-radius: 16px;
   }
-  
-  .modal-header,
+
+  .modal-header {
+    padding: 25px 25px;
+    border-radius: 16px 16px 0 0;
+  }
+
+  .modal-header h1 {
+    font-size: 1.7rem;
+  }
+
   .cancelar-form {
-    padding: 16px;
+    padding: 25px;
   }
-  
+
   .modal-actions {
     flex-direction: column;
   }
-  
+
   .btn-volver,
   .btn-confirmar {
     width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .denuncia-details {
+    padding: 18px 20px;
+  }
+
+  .motivo-option {
+    padding: 14px;
   }
 }

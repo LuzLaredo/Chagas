@@ -25,14 +25,14 @@ export const getEstadisticasGenerales = (req, res) => {
       }
 
       const stats = result[0];
-      
+
       // Calcular tasas
-      const tasaInfestacion = stats.viviendas_evaluadas > 0 
+      const tasaInfestacion = stats.viviendas_evaluadas > 0
         ? ((stats.viviendas_positivas / stats.viviendas_evaluadas) * 100).toFixed(1)
         : 0;
-      
-      const coberturaRociado = stats.viviendas_evaluadas > 0
-        ? ((stats.viviendas_rociadas / stats.viviendas_evaluadas) * 100).toFixed(1)
+
+      const coberturaRociado = stats.viviendas_registradas > 0
+        ? ((stats.viviendas_rociadas / stats.viviendas_registradas) * 100).toFixed(1)
         : 0;
 
       const estadisticas = {
@@ -236,7 +236,7 @@ export const getAllEstadisticas = async (req, res) => {
     ]);
 
     // Calcular habitaciones no rociadas como porcentaje
-    const habitacionesNoRociadas = generales.habitacionesNoRociadas > 0 
+    const habitacionesNoRociadas = generales.habitacionesNoRociadas > 0
       ? Math.round((generales.habitacionesNoRociadas / (generales.habitacionesNoRociadas + generales.viviendasRociadas)) * 100)
       : 0;
 
@@ -258,7 +258,7 @@ export const getAllEstadisticas = async (req, res) => {
 export const getEstadisticasPorFechas = (req, res) => {
   try {
     const { inicio, fin } = req.query;
-    
+
     if (!inicio || !fin) {
       return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
     }
@@ -293,14 +293,14 @@ export const getEstadisticasPorFechas = (req, res) => {
       }
 
       const stats = result[0];
-      
+
       // Calcular tasas
-      const tasaInfestacion = stats.viviendas_evaluadas > 0 
+      const tasaInfestacion = stats.viviendas_evaluadas > 0
         ? ((stats.viviendas_positivas / stats.viviendas_evaluadas) * 100).toFixed(1)
         : 0;
-      
-      const coberturaRociado = stats.viviendas_evaluadas > 0
-        ? ((stats.viviendas_rociadas / stats.viviendas_evaluadas) * 100).toFixed(1)
+
+      const coberturaRociado = stats.viviendas_registradas > 0
+        ? ((stats.viviendas_rociadas / stats.viviendas_registradas) * 100).toFixed(1)
         : 0;
 
       const estadisticas = {
@@ -374,8 +374,8 @@ export const getEstadisticasPorFechas = (req, res) => {
           value: total > 0 ? Math.round((item.value / total) * 100) : 0
         }));
 
-         // Obtener top comunidades por fechas
-         const topComunidadesQuery = `
+        // Obtener top comunidades por fechas
+        const topComunidadesQuery = `
            SELECT 
              c.nombre_comunidad as nombre,
              COUNT(v.vivienda_id) as valor
@@ -461,7 +461,7 @@ export const getEstadisticasPorFechas = (req, res) => {
             }
 
             // Calcular habitaciones no rociadas como porcentaje
-            const habitacionesNoRociadas = estadisticas.habitacionesNoRociadas > 0 
+            const habitacionesNoRociadas = estadisticas.habitacionesNoRociadas > 0
               ? Math.round((estadisticas.habitacionesNoRociadas / (estadisticas.habitacionesNoRociadas + estadisticas.viviendasRociadas)) * 100)
               : 0;
 
@@ -486,10 +486,25 @@ export const getEstadisticasPorFechas = (req, res) => {
 
 export const getEvolucionTemporal = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
+    const { inicio, fin, municipio, comunidad } = req.query;
+
+    // Construir filtros dinámicos
+    let whereClause = 'WHERE 1=1';
+    let params = [];
+
+    if (inicio && fin) {
+      whereClause += ' AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      params.push(inicio, fin);
+    }
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      whereClause += ' AND c.municipio_id = ?';
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      whereClause += ' AND c.comunidad_id = ?';
+      params.push(comunidad);
     }
 
     // Obtener evolución temporal REAL de evaluaciones por mes
@@ -505,14 +520,12 @@ export const getEvolucionTemporal = (req, res) => {
         ) as tasa_infestacion
       FROM Evaluaciones_Entomologicas ee
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      ${whereClause}
       GROUP BY DATE_FORMAT(ee.fecha_evaluacion, '%Y-%m')
       ORDER BY mes ASC
     `;
 
-    const queryParams = [inicio, fin];
-
-    db.query(query, queryParams, (err, result) => {
+    db.query(query, params, (err, result) => {
       if (err) {
         console.error('Error al obtener evolución temporal:', err);
         return res.status(500).json({ error: 'Error en la base de datos' });
@@ -534,9 +547,15 @@ export const getEvolucionTemporal = (req, res) => {
 export const getEficaciaRociado = (req, res) => {
   try {
     const { inicio, fin } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
+
+    let fechaRegistroFilter = '';
+    let fechaEvaluacionFilter = '';
+    let params = [];
+
+    if (inicio && fin) {
+      fechaRegistroFilter = 'AND fr.fecha_registro BETWEEN ? AND ?';
+      fechaEvaluacionFilter = 'AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      params.push(inicio, fin, inicio, fin);
     }
 
     // Obtener eficacia REAL del rociado por comunidad
@@ -562,16 +581,16 @@ export const getEficaciaRociado = (req, res) => {
         ) as tasa_infestacion
       FROM Comunidades c
       LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id 
-        AND fr.fecha_registro BETWEEN ? AND ?
+        ${fechaRegistroFilter}
       LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id 
-        AND ee.fecha_evaluacion BETWEEN ? AND ?
+        ${fechaEvaluacionFilter}
       GROUP BY c.comunidad_id, c.nombre_comunidad
       HAVING viviendas_rociadas > 0 OR viviendas_evaluadas > 0
       ORDER BY viviendas_rociadas DESC
       LIMIT 5
     `;
 
-    db.query(query, [inicio, fin, inicio, fin], (err, result) => {
+    db.query(query, params, (err, result) => {
       if (err) {
         console.error('Error al obtener eficacia de rociado:', err);
         return res.status(500).json({ error: 'Error en la base de datos' });
@@ -587,10 +606,28 @@ export const getEficaciaRociado = (req, res) => {
 
 export const getDistribucionEjemplares = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
+    const { inicio, fin, municipio, comunidad } = req.query;
+
+    // Construir filtros dinámicos
+    let municipioFilter = '';
+    let comunidadFilter = '';
+    let params = [];
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      municipioFilter = 'AND c.municipio_id = ?';
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      comunidadFilter = 'AND c.comunidad_id = ?';
+      params.push(comunidad);
+    }
+
+    let dateFilter = '';
+    let dateParams = [];
+    if (inicio && fin) {
+      dateFilter = 'AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      dateParams = [inicio, fin];
     }
 
     // Obtener distribución REAL de ejemplares capturados
@@ -603,7 +640,7 @@ export const getDistribucionEjemplares = (req, res) => {
       FROM EE1_Detalles_Capturas ec
       JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilter} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -615,7 +652,7 @@ export const getDistribucionEjemplares = (req, res) => {
       FROM EE1_Detalles_Capturas ec
       JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilter} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -627,7 +664,7 @@ export const getDistribucionEjemplares = (req, res) => {
       FROM EE1_Detalles_Capturas ec
       JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilter} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -639,10 +676,15 @@ export const getDistribucionEjemplares = (req, res) => {
       FROM EE1_Detalles_Capturas ec
       JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilter} ${municipioFilter} ${comunidadFilter}
     `;
 
-    const queryParams = [inicio, fin, inicio, fin, inicio, fin, inicio, fin];
+    const queryParams = [
+      ...dateParams, ...params,
+      ...dateParams, ...params,
+      ...dateParams, ...params,
+      ...dateParams, ...params
+    ];
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -660,10 +702,35 @@ export const getDistribucionEjemplares = (req, res) => {
 
 export const getMetricasProgreso = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
+    const { inicio, fin, municipio, comunidad } = req.query;
+
+    // Construir filtros dinámicos
+    let municipioFilter = '';
+    let comunidadFilter = '';
+    let params = [];
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      municipioFilter = 'AND c.municipio_id = ?';
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      comunidadFilter = 'AND c.comunidad_id = ?';
+      params.push(comunidad);
+    }
+
+    let dateFilterDenuncias = '';
+    let dateFilterViviendas = '';
+    let dateFilterFormulario = '';
+    let dateFilterEvaluaciones = '';
+    let dateParams = [];
+
+    if (inicio && fin) {
+      dateFilterDenuncias = 'AND d.fecha_denuncia BETWEEN ? AND ?';
+      dateFilterViviendas = 'AND v.fecha_creacion BETWEEN ? AND ?';
+      dateFilterFormulario = 'AND fr.fecha_registro BETWEEN ? AND ?';
+      dateFilterEvaluaciones = 'AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      dateParams = [inicio, fin];
     }
 
     // Obtener métricas de progreso REALES de la base de datos
@@ -675,7 +742,7 @@ export const getMetricasProgreso = (req, res) => {
       FROM Denuncias d
       JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
       JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE d.fecha_denuncia BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterDenuncias} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -685,7 +752,7 @@ export const getMetricasProgreso = (req, res) => {
         '#3498db' as color
       FROM Viviendas v
       JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE v.fecha_creacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterViviendas} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -695,7 +762,7 @@ export const getMetricasProgreso = (req, res) => {
         '#f39c12' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.fecha_registro BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterFormulario} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -705,7 +772,7 @@ export const getMetricasProgreso = (req, res) => {
         '#9b59b6' as color
       FROM Comunidades c
       JOIN Viviendas v ON c.comunidad_id = v.comunidad_id
-      WHERE v.fecha_creacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterViviendas} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -715,7 +782,7 @@ export const getMetricasProgreso = (req, res) => {
         '#27ae60' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.fecha_registro BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterFormulario} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -725,7 +792,7 @@ export const getMetricasProgreso = (req, res) => {
         '#8e44ad' as color
       FROM Evaluaciones_Entomologicas ee
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterEvaluaciones} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -735,7 +802,7 @@ export const getMetricasProgreso = (req, res) => {
         '#c0392b' as color
       FROM Evaluaciones_Entomologicas ee
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      WHERE ee.resultado = 'positivo' AND ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE ee.resultado = 'positivo' ${dateFilterEvaluaciones} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -745,10 +812,19 @@ export const getMetricasProgreso = (req, res) => {
         '#d35400' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.fecha_registro BETWEEN ? AND ?
+      WHERE 1=1 ${dateFilterFormulario} ${municipioFilter} ${comunidadFilter}
     `;
 
-    const queryParams = [inicio, fin, inicio, fin, inicio, fin, inicio, fin, inicio, fin, inicio, fin, inicio, fin, inicio, fin];
+    const queryParams = [
+      ...dateParams, ...params, // Denuncias
+      ...dateParams, ...params, // Viviendas
+      ...dateParams, ...params, // Habitantes
+      ...dateParams, ...params, // Comunidades
+      ...dateParams, ...params, // Rociadas
+      ...dateParams, ...params, // Evaluaciones
+      ...dateParams, ...params, // Positivas
+      ...dateParams, ...params  // Insecticida
+    ];
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -766,8 +842,8 @@ export const getMetricasProgreso = (req, res) => {
 
 export const getComparacionFechas = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
+    const { inicio, fin, municipio, comunidad } = req.query;
+
     if (!inicio || !fin) {
       return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
     }
@@ -781,11 +857,16 @@ export const getComparacionFechas = (req, res) => {
 
     // Construir filtros dinámicos
     let whereClause = '';
-    let municipioParam = [];
-    
+    let params = [];
+
     if (municipio && municipio !== 'todos' && municipio !== '') {
-      whereClause = `AND c.municipio_id = ?`;
-      municipioParam = [municipio];
+      whereClause += ` AND c.municipio_id = ?`;
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      whereClause += ` AND c.comunidad_id = ?`;
+      params.push(comunidad);
     }
 
     // Obtener comparación REAL entre períodos
@@ -864,12 +945,12 @@ export const getComparacionFechas = (req, res) => {
     `;
 
     const queryParams = [
-      inicio, fin, ...municipioParam, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...municipioParam,
-      inicio, fin, ...municipioParam, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...municipioParam,
-      inicio, fin, ...municipioParam, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...municipioParam,
-      inicio, fin, ...municipioParam, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...municipioParam,
-      inicio, fin, ...municipioParam, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...municipioParam,
-      inicio, fin, ...municipioParam, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...municipioParam
+      inicio, fin, ...params, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...params,
+      inicio, fin, ...params, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...params,
+      inicio, fin, ...params, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...params,
+      inicio, fin, ...params, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...params,
+      inicio, fin, ...params, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...params,
+      inicio, fin, ...params, fechaInicioAnterior.toISOString().split('T')[0], fechaFinAnterior.toISOString().split('T')[0], ...params
     ];
 
     db.query(query, queryParams, (err, result) => {
@@ -889,7 +970,7 @@ export const getComparacionFechas = (req, res) => {
 export const getEstadisticasPorMunicipio = (req, res) => {
   try {
     const { municipioId } = req.params;
-    
+
     if (!municipioId) {
       return res.status(400).json({ error: 'ID de municipio es requerido' });
     }
@@ -945,14 +1026,14 @@ export const getEstadisticasPorMunicipio = (req, res) => {
       }
 
       const stats = result[0];
-      
+
       // Calcular tasa de infestación
-      const tasaInfestacion = stats.viviendas_evaluadas > 0 
+      const tasaInfestacion = stats.viviendas_evaluadas > 0
         ? ((stats.viviendas_positivas / stats.viviendas_evaluadas) * 100).toFixed(1)
         : 0;
 
       // Calcular cobertura de rociado
-      const coberturaRociado = stats.viviendas_registradas > 0 
+      const coberturaRociado = stats.viviendas_registradas > 0
         ? ((stats.viviendas_rociadas / stats.viviendas_registradas) * 100).toFixed(1)
         : 0;
 
@@ -1146,7 +1227,7 @@ export const getEstadisticasPorMunicipio = (req, res) => {
 export const getEstadisticasPorFechasYMunicipio = (req, res) => {
   try {
     const { inicio, fin, municipio } = req.query;
-    
+
     if (!inicio || !fin || !municipio) {
       return res.status(400).json({ error: 'Fechas de inicio, fin y municipio son requeridos' });
     }
@@ -1213,14 +1294,14 @@ export const getEstadisticasPorFechasYMunicipio = (req, res) => {
       }
 
       const stats = result[0];
-      
+
       // Calcular tasa de infestación
-      const tasaInfestacion = stats.viviendas_evaluadas > 0 
+      const tasaInfestacion = stats.viviendas_evaluadas > 0
         ? ((stats.viviendas_positivas / stats.viviendas_evaluadas) * 100).toFixed(1)
         : 0;
 
       // Calcular cobertura de rociado
-      const coberturaRociado = stats.viviendas_registradas > 0 
+      const coberturaRociado = stats.viviendas_registradas > 0
         ? ((stats.viviendas_rociadas / stats.viviendas_registradas) * 100).toFixed(1)
         : 0;
 
@@ -1428,13 +1509,13 @@ export const getEstadisticasPorFechasYMunicipio = (req, res) => {
 export const getMunicipios = (req, res) => {
   try {
     const query = 'SELECT municipio_id, nombre_municipio, departamento FROM Municipios ORDER BY nombre_municipio';
-    
+
     db.query(query, (err, result) => {
       if (err) {
         console.error('Error al obtener municipios:', err);
         return res.status(500).json({ error: 'Error en la base de datos' });
       }
-      
+
       res.json(result);
     });
   } catch (error) {
@@ -1443,76 +1524,52 @@ export const getMunicipios = (req, res) => {
   }
 };
 
-// Nueva función para obtener estadísticas de denuncias por estado
 export const getEstadisticasDenuncias = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
-    }
+    const { inicio, fin, municipio, comunidad } = req.query;
 
     // Construir filtros dinámicos
-    let whereClause = '';
+    let municipioFilter = '';
+    let comunidadFilter = '';
     let params = [];
-    
-    if (municipio && municipio !== 'todos') {
-      whereClause = `AND c.municipio_id = ?`;
-      params = [municipio, municipio, municipio, municipio, municipio];
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      municipioFilter = 'AND c.municipio_id = ?';
+      params.push(municipio);
     }
 
-    // Obtener estadísticas REALES de denuncias por estado
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      comunidadFilter = 'AND c.comunidad_id = ?';
+      params.push(comunidad);
+    }
+
+    let dateFilter = '';
+    let dateParams = [];
+    if (inicio && fin) {
+      dateFilter = 'AND d.fecha_denuncia BETWEEN ? AND ?';
+      dateParams = [inicio, fin];
+    }
+
+    // Obtener estadísticas de denuncias por estado
     const query = `
       SELECT 
-        'Recibidas' as estado,
+        d.estado_denuncia as estado,
         COUNT(*) as cantidad,
-        '#ffc107' as color
+        CASE 
+          WHEN d.estado_denuncia = 'pendiente' THEN '#f1c40f'
+          WHEN d.estado_denuncia = 'realizada' THEN '#2ecc71'
+          WHEN d.estado_denuncia = 'cancelada' THEN '#e74c3c'
+          ELSE '#95a5a6'
+        END as color
       FROM Denuncias d
       JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
       JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE d.estado_denuncia = 'recibida' AND d.fecha_denuncia BETWEEN ? AND ?
-      ${whereClause}
-      
-      UNION ALL
-      
-      SELECT 
-        'Programadas' as estado,
-        COUNT(*) as cantidad,
-        '#6f42c1' as color
-      FROM Denuncias d
-      JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
-      JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE d.estado_denuncia = 'programada' AND d.fecha_denuncia BETWEEN ? AND ?
-      ${whereClause}
-      
-      UNION ALL
-      
-      SELECT 
-        'Realizadas' as estado,
-        COUNT(*) as cantidad,
-        '#20c997' as color
-      FROM Denuncias d
-      JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
-      JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE d.estado_denuncia = 'realizada' AND d.fecha_denuncia BETWEEN ? AND ?
-      ${whereClause}
-      
-      UNION ALL
-      
-      SELECT 
-        'Canceladas' as estado,
-        COUNT(*) as cantidad,
-        '#dc3545' as color
-      FROM Denuncias d
-      JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
-      JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE d.estado_denuncia = 'cancelada' AND d.fecha_denuncia BETWEEN ? AND ?
-      ${whereClause}
+      WHERE 1=1 ${dateFilter} ${municipioFilter} ${comunidadFilter}
+      GROUP BY d.estado_denuncia
+      ORDER BY cantidad DESC
     `;
 
-    const queryParams = municipio && municipio !== 'todos' 
-      ? [inicio, fin, inicio, fin, inicio, fin, inicio, fin, inicio, fin, ...params]
-      : [inicio, fin, inicio, fin, inicio, fin, inicio, fin, inicio, fin];
+    const queryParams = [...dateParams, ...params];
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -1528,20 +1585,30 @@ export const getEstadisticasDenuncias = (req, res) => {
   }
 };
 
-// Nueva función para obtener estadísticas de eficiencia del rociado
 export const getEficienciaRociado = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
-    }
+    const { inicio, fin, municipio, comunidad } = req.query;
 
     // Construir filtros dinámicos
-    let whereClause = '';
-    
+    let municipioFilter = '';
+    let comunidadFilter = '';
+    let params = [];
+
     if (municipio && municipio !== 'todos' && municipio !== '') {
-      whereClause = `AND c.municipio_id = ?`;
+      municipioFilter = 'AND c.municipio_id = ?';
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      comunidadFilter = 'AND c.comunidad_id = ?';
+      params.push(comunidad);
+    }
+
+    let dateFilter = '';
+    let dateParams = [];
+    if (inicio && fin) {
+      dateFilter = 'AND fr.fecha_registro BETWEEN ? AND ?';
+      dateParams = [inicio, fin];
     }
 
     // Obtener estadísticas REALES de eficiencia del rociado
@@ -1552,8 +1619,7 @@ export const getEficienciaRociado = (req, res) => {
         '#dc3545' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.cerrada = TRUE AND fr.fecha_registro BETWEEN ? AND ?
-      ${whereClause}
+      WHERE fr.cerrada = TRUE ${dateFilter} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -1563,8 +1629,7 @@ export const getEficienciaRociado = (req, res) => {
         '#fd7e14' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.renuente = TRUE AND fr.fecha_registro BETWEEN ? AND ?
-      ${whereClause}
+      WHERE fr.renuente = TRUE ${dateFilter} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -1574,8 +1639,7 @@ export const getEficienciaRociado = (req, res) => {
         '#6c757d' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.fecha_registro BETWEEN ? AND ?
-      ${whereClause}
+      WHERE 1=1 ${dateFilter} ${municipioFilter} ${comunidadFilter}
       
       UNION ALL
       
@@ -1585,13 +1649,15 @@ export const getEficienciaRociado = (req, res) => {
         '#198754' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.cerrada = FALSE AND fr.renuente = FALSE AND fr.fecha_registro BETWEEN ? AND ?
-      ${whereClause}
+      WHERE fr.cerrada = FALSE AND fr.renuente = FALSE ${dateFilter} ${municipioFilter} ${comunidadFilter}
     `;
 
-    const queryParams = municipio && municipio !== 'todos' && municipio !== ''
-      ? [inicio, fin, municipio, inicio, fin, municipio, inicio, fin, municipio, inicio, fin, municipio]
-      : [inicio, fin, inicio, fin, inicio, fin, inicio, fin];
+    const queryParams = [
+      ...dateParams, ...params,
+      ...dateParams, ...params,
+      ...dateParams, ...params,
+      ...dateParams, ...params
+    ];
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -1610,43 +1676,59 @@ export const getEficienciaRociado = (req, res) => {
 // Nuevas métricas avanzadas
 export const getAnalisisTemporal = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
-    }
+    const { inicio, fin, municipio, comunidad } = req.query;
 
     let whereClause = '';
     let params = [];
-    
-    if (municipio && municipio !== 'todos') {
-      whereClause = `AND c.municipio_id = ?`;
-      params = [municipio, municipio, municipio, municipio];
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      whereClause += ` AND c.municipio_id = ? `;
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      whereClause += ` AND c.comunidad_id = ? `;
+      params.push(comunidad);
+    }
+
+    let dateFilterDenuncias = '';
+    let dateFilterEvaluaciones = '';
+    let dateFilterFormulario = '';
+    let dateParams = [];
+
+    if (inicio && fin) {
+      dateFilterDenuncias = 'AND d.fecha_denuncia BETWEEN ? AND ?';
+      dateFilterEvaluaciones = 'AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      dateFilterFormulario = 'AND fr.fecha_registro BETWEEN ? AND ?';
+      dateParams = [inicio, fin];
     }
 
     const query = `
-      SELECT 
-        DATE_FORMAT(d.fecha_denuncia, '%Y-%m') as mes,
-        COUNT(DISTINCT d.denuncia_id) as denuncias,
-        COUNT(DISTINCT CASE WHEN d.estado_denuncia = 'realizada' THEN d.denuncia_id END) as denuncias_atendidas,
-        COUNT(DISTINCT ee.evaluacion_id) as evaluaciones,
-        COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) as evaluaciones_positivas,
-        COUNT(DISTINCT fr.id_rr1) as rociados,
-        ROUND(COUNT(DISTINCT CASE WHEN d.estado_denuncia = 'realizada' THEN d.denuncia_id END) * 100.0 / COUNT(DISTINCT d.denuncia_id), 2) as tasa_atencion,
-        ROUND(COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) * 100.0 / COUNT(DISTINCT ee.evaluacion_id), 2) as tasa_infestacion
+      SELECT
+DATE_FORMAT(d.fecha_denuncia, '%Y-%m') as mes,
+  COUNT(DISTINCT d.denuncia_id) as denuncias,
+  COUNT(DISTINCT CASE WHEN d.estado_denuncia = 'realizada' THEN d.denuncia_id END) as denuncias_atendidas,
+  COUNT(DISTINCT ee.evaluacion_id) as evaluaciones,
+  COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) as evaluaciones_positivas,
+  COUNT(DISTINCT fr.id_rr1) as rociados,
+  ROUND(COUNT(DISTINCT CASE WHEN d.estado_denuncia = 'realizada' THEN d.denuncia_id END) * 100.0 / COUNT(DISTINCT d.denuncia_id), 2) as tasa_atencion,
+  ROUND(COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) * 100.0 / COUNT(DISTINCT ee.evaluacion_id), 2) as tasa_infestacion
       FROM Comunidades c
       LEFT JOIN Viviendas v ON c.comunidad_id = v.comunidad_id
-      LEFT JOIN Denuncias d ON v.vivienda_id = d.vivienda_id AND d.fecha_denuncia BETWEEN ? AND ?
-      LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id AND ee.fecha_evaluacion BETWEEN ? AND ?
-      LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id AND fr.fecha_registro BETWEEN ? AND ?
-      WHERE 1=1 ${whereClause}
+      LEFT JOIN Denuncias d ON v.vivienda_id = d.vivienda_id ${dateFilterDenuncias}
+      LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id ${dateFilterEvaluaciones}
+      LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id ${dateFilterFormulario}
+      WHERE 1 = 1 ${whereClause}
       GROUP BY DATE_FORMAT(d.fecha_denuncia, '%Y-%m')
       ORDER BY mes DESC
     `;
 
-    const queryParams = municipio && municipio !== 'todos' 
-      ? [inicio, fin, inicio, fin, inicio, fin, ...params]
-      : [inicio, fin, inicio, fin, inicio, fin];
+    const queryParams = [
+      ...(dateParams.length > 0 ? dateParams : []),
+      ...(dateParams.length > 0 ? dateParams : []),
+      ...(dateParams.length > 0 ? dateParams : []),
+      ...params
+    ];
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -1664,46 +1746,62 @@ export const getAnalisisTemporal = (req, res) => {
 
 export const getDistribucionGeografica = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
-    }
+    const { inicio, fin, municipio, comunidad } = req.query;
 
     let whereClause = '';
     let params = [];
-    
-    if (municipio && municipio !== 'todos') {
-      whereClause = `AND m.municipio_id = ?`;
-      params = [municipio, municipio, municipio, municipio];
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      whereClause += ` AND m.municipio_id = ? `;
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      whereClause += ` AND c.comunidad_id = ? `;
+      params.push(comunidad);
+    }
+
+    let dateFilterDenuncias = '';
+    let dateFilterEvaluaciones = '';
+    let dateFilterFormulario = '';
+    let dateParams = [];
+
+    if (inicio && fin) {
+      dateFilterDenuncias = 'AND d.fecha_denuncia BETWEEN ? AND ?';
+      dateFilterEvaluaciones = 'AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      dateFilterFormulario = 'AND fr.fecha_registro BETWEEN ? AND ?';
+      dateParams = [inicio, fin];
     }
 
     const query = `
-      SELECT 
-        m.nombre_municipio,
-        COUNT(DISTINCT c.comunidad_id) as comunidades,
-        COUNT(DISTINCT v.vivienda_id) as viviendas,
-        COUNT(DISTINCT d.denuncia_id) as denuncias,
-        COUNT(DISTINCT ee.evaluacion_id) as evaluaciones,
-        COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) as evaluaciones_positivas,
-        COUNT(DISTINCT fr.id_rr1) as rociados,
-        SUM(fr.habitantes_protegidos) as habitantes_protegidos,
-        SUM(fr.cantidad_insecticida) as insecticida_utilizado,
-        ROUND(COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) * 100.0 / COUNT(DISTINCT ee.evaluacion_id), 2) as tasa_infestacion
+      SELECT
+m.nombre_municipio,
+  COUNT(DISTINCT c.comunidad_id) as comunidades,
+  COUNT(DISTINCT v.vivienda_id) as viviendas,
+  COUNT(DISTINCT d.denuncia_id) as denuncias,
+  COUNT(DISTINCT ee.evaluacion_id) as evaluaciones,
+  COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) as evaluaciones_positivas,
+  COUNT(DISTINCT fr.id_rr1) as rociados,
+  SUM(fr.habitantes_protegidos) as habitantes_protegidos,
+  SUM(fr.cantidad_insecticida) as insecticida_utilizado,
+  ROUND(COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END) * 100.0 / COUNT(DISTINCT ee.evaluacion_id), 2) as tasa_infestacion
       FROM Municipios m
       LEFT JOIN Comunidades c ON m.municipio_id = c.municipio_id
       LEFT JOIN Viviendas v ON c.comunidad_id = v.comunidad_id
-      LEFT JOIN Denuncias d ON v.vivienda_id = d.vivienda_id AND d.fecha_denuncia BETWEEN ? AND ?
-      LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id AND ee.fecha_evaluacion BETWEEN ? AND ?
-      LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id AND fr.fecha_registro BETWEEN ? AND ?
-      WHERE 1=1 ${whereClause}
+      LEFT JOIN Denuncias d ON v.vivienda_id = d.vivienda_id ${dateFilterDenuncias}
+      LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id ${dateFilterEvaluaciones}
+      LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id ${dateFilterFormulario}
+      WHERE 1 = 1 ${whereClause}
       GROUP BY m.municipio_id, m.nombre_municipio
       ORDER BY denuncias DESC
     `;
 
-    const queryParams = municipio && municipio !== 'todos' 
-      ? [inicio, fin, inicio, fin, inicio, fin, ...params]
-      : [inicio, fin, inicio, fin, inicio, fin];
+    const queryParams = [
+      ...(dateParams.length > 0 ? dateParams : []),
+      ...(dateParams.length > 0 ? dateParams : []),
+      ...(dateParams.length > 0 ? dateParams : []),
+      ...params
+    ];
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -1721,43 +1819,47 @@ export const getDistribucionGeografica = (req, res) => {
 
 export const getAnalisisEjemplares = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
-    }
+    const { inicio, fin, municipio, comunidad } = req.query;
+
+    // Fechas opcionales
+    // if (!inicio || !fin) { ... }
 
     let whereClause = '';
     let params = [];
-    
-    if (municipio && municipio !== 'todos') {
-      whereClause = `AND c.municipio_id = ?`;
-      params = [municipio, municipio, municipio];
+
+    if (municipio && municipio !== 'todos' && municipio !== '') {
+      whereClause += ` AND c.municipio_id = ? `;
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      whereClause += ` AND c.comunidad_id = ? `;
+      params.push(comunidad);
     }
 
     const query = `
-      SELECT 
-        ee.resultado,
-        SUM(det.total_ninfas + det.total_adultas) as total_ejemplares,
-        SUM(det.intra_ninfas + det.intra_adulta) as ejemplares_intra,
-        SUM(det.peri_ninfa + det.peri_adulta) as ejemplares_peri,
-        AVG(det.total_ninfas + det.total_adultas) as promedio_por_evaluacion,
-        MAX(det.total_ninfas + det.total_adultas) as maximo_encontrado,
-        COUNT(DISTINCT det.evaluacion_id) as evaluaciones_con_ejemplares,
-        ROUND(SUM(det.intra_ninfas + det.intra_adulta) * 100.0 / SUM(det.total_ninfas + det.total_adultas), 2) as porcentaje_intra,
-        ROUND(SUM(det.peri_ninfa + det.peri_adulta) * 100.0 / SUM(det.total_ninfas + det.total_adultas), 2) as porcentaje_peri
+      SELECT
+ee.resultado,
+  SUM(det.total_ninfas + det.total_adultas) as total_ejemplares,
+  SUM(det.intra_ninfas + det.intra_adulta) as ejemplares_intra,
+  SUM(det.peri_ninfa + det.peri_adulta) as ejemplares_peri,
+  AVG(det.total_ninfas + det.total_adultas) as promedio_por_evaluacion,
+  MAX(det.total_ninfas + det.total_adultas) as maximo_encontrado,
+  COUNT(DISTINCT det.evaluacion_id) as evaluaciones_con_ejemplares,
+  ROUND(SUM(det.intra_ninfas + det.intra_adulta) * 100.0 / SUM(det.total_ninfas + det.total_adultas), 2) as porcentaje_intra,
+  ROUND(SUM(det.peri_ninfa + det.peri_adulta) * 100.0 / SUM(det.total_ninfas + det.total_adultas), 2) as porcentaje_peri
       FROM Evaluaciones_Entomologicas ee
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
       JOIN EE1_Detalles_Capturas det ON ee.evaluacion_id = det.evaluacion_id
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ?
+      WHERE 1 = 1 ${inicio && fin ? 'AND ee.fecha_evaluacion BETWEEN ? AND ?' : ''}
       ${whereClause}
       GROUP BY ee.resultado
       ORDER BY total_ejemplares DESC
     `;
 
-    const queryParams = municipio && municipio !== 'todos' 
-      ? [inicio, fin, ...params]
-      : [inicio, fin];
+    const queryParams = [];
+    if (inicio && fin) queryParams.push(inicio, fin);
+    queryParams.push(...params);
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -1775,73 +1877,87 @@ export const getAnalisisEjemplares = (req, res) => {
 
 export const getIndicadoresRendimiento = (req, res) => {
   try {
-    const { inicio, fin, municipio } = req.query;
-    
-    if (!inicio || !fin) {
-      return res.status(400).json({ error: 'Fechas de inicio y fin son requeridas' });
-    }
+    const { inicio, fin, municipio, comunidad } = req.query;
+
+    // Fechas opcionales
+    // if (!inicio || !fin) { ... }
 
     let whereClause = '';
-    let municipioParam = [];
-    
+    let params = [];
+
     if (municipio && municipio !== 'todos' && municipio !== '') {
-      whereClause = `AND c.municipio_id = ?`;
-      municipioParam = [municipio];
+      whereClause += ` AND c.municipio_id = ? `;
+      params.push(municipio);
+    }
+
+    if (comunidad && comunidad !== 'todos' && comunidad !== '') {
+      whereClause += ` AND c.comunidad_id = ? `;
+      params.push(comunidad);
     }
 
     const query = `
-      SELECT 
-        'Tiempo Promedio de Atención' as indicador,
-        ROUND(AVG(TIMESTAMPDIFF(HOUR, d.fecha_denuncia, d.fecha_ejecucion)), 2) as valor,
-        'horas' as unidad,
-        '#3498db' as color
+      SELECT
+'Tiempo Promedio de Atención' as indicador,
+  ROUND(AVG(TIMESTAMPDIFF(HOUR, d.fecha_denuncia, d.fecha_ejecucion)), 2) as valor,
+  'horas' as unidad,
+  '#3498db' as color
       FROM Denuncias d
       JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
       JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      WHERE d.fecha_denuncia BETWEEN ? AND ? AND d.fecha_ejecucion IS NOT NULL
+      WHERE d.fecha_ejecucion IS NOT NULL ${inicio && fin ? 'AND d.fecha_denuncia BETWEEN ? AND ?' : ''} ${whereClause}
       
       UNION ALL
-      
-      SELECT 
-        'Eficiencia de Evaluación' as indicador,
-        ROUND(COUNT(DISTINCT ee.evaluacion_id) * 100.0 / COUNT(DISTINCT d.denuncia_id), 2) as valor,
-        '%' as unidad,
-        '#2ecc71' as color
+
+SELECT
+'Eficiencia de Evaluación' as indicador,
+  ROUND(COUNT(DISTINCT ee.evaluacion_id) * 100.0 / COUNT(DISTINCT d.denuncia_id), 2) as valor,
+  '%' as unidad,
+  '#2ecc71' as color
       FROM Denuncias d
       JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
       JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
-      LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id AND ee.fecha_evaluacion BETWEEN ? AND ?
-      WHERE d.fecha_denuncia BETWEEN ? AND ?
+      LEFT JOIN Evaluaciones_Entomologicas ee ON c.comunidad_id = ee.comunidad_id ${inicio && fin ? 'AND ee.fecha_evaluacion BETWEEN ? AND ?' : ''} ${whereClause}
+      WHERE 1 = 1 ${inicio && fin ? 'AND d.fecha_denuncia BETWEEN ? AND ?' : ''} ${whereClause}
       
       UNION ALL
-      
-      SELECT 
-        'Cobertura de Rociado' as indicador,
-        ROUND(COUNT(DISTINCT fr.id_rr1) * 100.0 / COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END), 2) as valor,
-        '%' as unidad,
-        '#e74c3c' as color
+
+SELECT
+'Cobertura de Rociado' as indicador,
+  ROUND(COUNT(DISTINCT fr.id_rr1) * 100.0 / COUNT(DISTINCT CASE WHEN ee.resultado = 'positivo' THEN ee.evaluacion_id END), 2) as valor,
+  '%' as unidad,
+  '#e74c3c' as color
       FROM Evaluaciones_Entomologicas ee
       JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
-      LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id AND fr.fecha_registro BETWEEN ? AND ?
-      WHERE ee.fecha_evaluacion BETWEEN ? AND ? AND ee.resultado = 'positivo'
+      LEFT JOIN Formulario_RR1 fr ON c.comunidad_id = fr.comunidad_id ${inicio && fin ? 'AND fr.fecha_registro BETWEEN ? AND ?' : ''}
+      WHERE ee.resultado = 'positivo' ${inicio && fin ? 'AND ee.fecha_evaluacion BETWEEN ? AND ?' : ''} ${whereClause}
       
       UNION ALL
-      
-      SELECT 
-        'Habitantes Protegidos por Litro' as indicador,
-        ROUND(SUM(fr.habitantes_protegidos) / SUM(fr.cantidad_insecticida), 2) as valor,
-        'personas/L' as unidad,
-        '#f39c12' as color
+
+SELECT
+'Habitantes Protegidos por Litro' as indicador,
+  ROUND(SUM(fr.habitantes_protegidos) / SUM(fr.cantidad_insecticida), 2) as valor,
+  'personas/L' as unidad,
+  '#f39c12' as color
       FROM Formulario_RR1 fr
       JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
-      WHERE fr.fecha_registro BETWEEN ? AND ? AND fr.cantidad_insecticida > 0
-    `;
+      WHERE fr.cantidad_insecticida > 0 ${inicio && fin ? 'AND fr.fecha_registro BETWEEN ? AND ?' : ''} ${whereClause}
+`;
 
-    const queryParams = [
-      inicio, fin, ...municipioParam, inicio, fin, ...municipioParam, 
-      inicio, fin, ...municipioParam, inicio, fin, ...municipioParam, 
-      inicio, fin, ...municipioParam, inicio, fin, ...municipioParam
-    ];
+    const queryParams = [];
+    if (inicio && fin) queryParams.push(inicio, fin); // Tiempo Promedio
+    queryParams.push(...params);
+
+    if (inicio && fin) queryParams.push(inicio, fin); // Eficiencia Evaluacion (ee)
+    queryParams.push(...params); // whereClause subquery
+    if (inicio && fin) queryParams.push(inicio, fin); // Eficiencia Evaluacion (d)
+    queryParams.push(...params); // whereClause main
+
+    if (inicio && fin) queryParams.push(inicio, fin); // Cobertura (fr)
+    if (inicio && fin) queryParams.push(inicio, fin); // Cobertura (ee)
+    queryParams.push(...params); // whereClause
+
+    if (inicio && fin) queryParams.push(inicio, fin); // Habitantes (fr)
+    queryParams.push(...params); // whereClause
 
     db.query(query, queryParams, (err, result) => {
       if (err) {
@@ -1856,3 +1972,223 @@ export const getIndicadoresRendimiento = (req, res) => {
     res.status(500).json({ error: 'Error interno del servidor' });
   }
 };
+
+// Nueva función para obtener estadísticas filtradas por municipio y comunidad
+export const getEstadisticasFiltradas = (req, res) => {
+  try {
+    const { municipioId, comunidadId, fechaInicio, fechaFin } = req.query;
+    const usuarioId = req.user?.usuario_id;
+    const rol = req.user?.rol;
+
+    // Si es supervisor, obtener su municipio automáticamente
+    if (rol === 'supervisor' && usuarioId) {
+      db.query(
+        'SELECT municipio_id FROM Usuario_Municipio WHERE usuario_id = ? LIMIT 1',
+        [usuarioId],
+        (err, results) => {
+          if (err || !results || results.length === 0) {
+            return res.status(403).json({ error: "Supervisor sin municipio asignado" });
+          }
+          
+          const municipioSupervisor = results[0].municipio_id;
+          ejecutarConsultaEstadisticas(municipioSupervisor, comunidadId, fechaInicio, fechaFin, res);
+        }
+      );
+      return;
+    }
+
+    // Para otros roles, usar el municipioId del query si se proporciona
+    const municipioFinal = (municipioId && municipioId !== 'todos' && municipioId !== '') ? municipioId : null;
+    ejecutarConsultaEstadisticas(municipioFinal, comunidadId, fechaInicio, fechaFin, res);
+  } catch (error) {
+    console.error('Error general en estadísticas filtradas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+};
+
+function ejecutarConsultaEstadisticas(municipioId, comunidadId, fechaInicio, fechaFin, res) {
+  try {
+    // Construir filtros dinámicos
+    let municipioFilter = '';
+    let comunidadFilter = '';
+    let fechaFilter = '';
+    let params = [];
+
+    if (municipioId && municipioId !== 'todos' && municipioId !== '') {
+      municipioFilter = 'AND c.municipio_id = ?';
+      params.push(municipioId);
+    }
+
+    if (comunidadId && comunidadId !== 'todos' && comunidadId !== '') {
+      comunidadFilter = 'AND c.comunidad_id = ?';
+      params.push(comunidadId);
+    }
+
+    // Construir filtros de fecha para cada tabla
+    let fechaViviendas = '';
+    let fechaFormulario = '';
+    let fechaEvaluaciones = '';
+    let fechaDenuncias = '';
+    let fechaParams = [];
+
+    if (fechaInicio && fechaFin) {
+      fechaViviendas = 'AND v.fecha_creacion BETWEEN ? AND ?';
+      fechaFormulario = 'AND fr.fecha_registro BETWEEN ? AND ?';
+      fechaEvaluaciones = 'AND ee.fecha_evaluacion BETWEEN ? AND ?';
+      fechaDenuncias = 'AND d.fecha_denuncia BETWEEN ? AND ?';
+      fechaParams = [fechaInicio, fechaFin];
+    }
+
+    // Consulta para obtener estadísticas generales filtradas - TODOS LOS DATOS DE LA BASE DE DATOS
+    const query = `
+SELECT
+  (SELECT COUNT(*) FROM Viviendas v 
+         JOIN Comunidades c ON v.comunidad_id = c.comunidad_id 
+         WHERE 1 = 1 ${fechaViviendas} ${municipioFilter} ${comunidadFilter}) as viviendas_registradas,
+  (SELECT COALESCE(SUM(fr.habitantes_protegidos), 0) FROM Formulario_RR1 fr
+         JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaFormulario} ${municipioFilter} ${comunidadFilter}) as habitantes_protegidos,
+  (SELECT COUNT(*) FROM Evaluaciones_Entomologicas ee
+         JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaEvaluaciones} ${municipioFilter} ${comunidadFilter}) as viviendas_evaluadas,
+  (SELECT COUNT(*) FROM Evaluaciones_Entomologicas ee
+         JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
+         WHERE ee.resultado = 'positivo' ${fechaEvaluaciones} ${municipioFilter} ${comunidadFilter}) as viviendas_positivas,
+  (SELECT COALESCE(SUM(ec.total_ninfas + ec.total_adultas), 0) FROM EE1_Detalles_Capturas ec 
+         JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id 
+         JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaEvaluaciones} ${municipioFilter} ${comunidadFilter}) as ejemplares_capturados,
+  (SELECT COALESCE(SUM(ec.intra_ninfas + ec.intra_adulta), 0) FROM EE1_Detalles_Capturas ec 
+         JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id 
+         JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaEvaluaciones} ${municipioFilter} ${comunidadFilter}) as ejemplares_intra,
+  (SELECT COALESCE(SUM(ec.peri_ninfa + ec.peri_adulta), 0) FROM EE1_Detalles_Capturas ec 
+         JOIN Evaluaciones_Entomologicas ee ON ec.evaluacion_id = ee.evaluacion_id 
+         JOIN Comunidades c ON ee.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaEvaluaciones} ${municipioFilter} ${comunidadFilter}) as ejemplares_peri,
+  (SELECT COUNT(*) FROM Formulario_RR1 fr
+         JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaFormulario} ${municipioFilter} ${comunidadFilter}) as viviendas_rociadas,
+  (SELECT COALESCE(SUM(fr.cantidad_insecticida), 0) FROM Formulario_RR1 fr
+         JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaFormulario} ${municipioFilter} ${comunidadFilter}) as total_insecticida,
+  (SELECT COALESCE(SUM(fr.habitaciones_no_rociadas), 0) FROM Formulario_RR1 fr
+         JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaFormulario} ${municipioFilter} ${comunidadFilter}) as habitaciones_no_rociadas,
+  (SELECT COUNT(*) FROM Denuncias d
+         JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
+         JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
+         WHERE 1 = 1 ${fechaDenuncias} ${municipioFilter} ${comunidadFilter}) as denuncias_vinchucas,
+  (SELECT COUNT(*) FROM Denuncias d
+         JOIN Viviendas v ON d.vivienda_id = v.vivienda_id
+         JOIN Comunidades c ON v.comunidad_id = c.comunidad_id
+         WHERE d.estado_denuncia = 'realizada' ${fechaDenuncias} ${municipioFilter} ${comunidadFilter}) as denuncias_atendidas,
+  (SELECT COUNT(*) FROM Formulario_RR1 fr
+         JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
+         WHERE fr.cerrada = TRUE ${fechaFormulario} ${municipioFilter} ${comunidadFilter}) as viviendas_cerradas,
+  (SELECT COUNT(*) FROM Formulario_RR1 fr
+         JOIN Comunidades c ON fr.comunidad_id = c.comunidad_id
+         WHERE fr.renuente = TRUE ${fechaFormulario} ${municipioFilter} ${comunidadFilter}) as viviendas_renuentes
+  `;
+
+    // Construir parámetros: cada subconsulta necesita sus propios parámetros
+    // Orden: viviendas_registradas, habitantes_protegidos, viviendas_evaluadas (x2), ejemplares (x3), formulario (x4), denuncias (x2), cerradas, renuentes
+    const queryParams = [
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // viviendas_registradas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // habitantes_protegidos
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // viviendas_evaluadas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // viviendas_positivas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // ejemplares_capturados
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // ejemplares_intra
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // ejemplares_peri
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // viviendas_rociadas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // total_insecticida
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // habitaciones_no_rociadas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // denuncias_vinchucas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // denuncias_atendidas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params,  // viviendas_cerradas
+      ...(fechaParams.length > 0 ? fechaParams : []), ...params   // viviendas_renuentes
+    ];
+
+    db.query(query, queryParams, (err, result) => {
+      if (err) {
+        console.error('Error en consulta de estadísticas filtradas:', err);
+        return res.status(500).json({ error: 'Error en la base de datos' });
+      }
+
+      if (result.length === 0) {
+        return res.json({
+          viviendasRegistradas: 0,
+          habitantesProtegidos: 0,
+          viviendasEvaluadas: 0,
+          viviendasPositivas: 0,
+          tasaInfestacion: 0,
+          ejemplaresCapturados: 0,
+          ejemplaresIntra: 0,
+          ejemplaresPeri: 0,
+          viviendasRociadas: 0,
+          coberturaRociado: 0,
+          totalInsecticida: 0,
+          habitacionesNoRociadas: 0,
+          denunciasVinchucas: 0,
+          denunciasAtendidas: 0,
+          tasaAtencionDenuncias: 0,
+          viviendasCerradas: 0,
+          viviendasRenuentes: 0,
+          promedioEjemplaresPorVivienda: 0,
+          porcentajeIntraDomiciliario: 0
+        });
+      }
+
+      const stats = result[0];
+
+      // Calcular tasas y métricas adicionales
+      const tasaInfestacion = stats.viviendas_evaluadas > 0
+        ? ((stats.viviendas_positivas / stats.viviendas_evaluadas) * 100).toFixed(1)
+        : 0;
+
+      const coberturaRociado = stats.viviendas_registradas > 0
+        ? ((stats.viviendas_rociadas / stats.viviendas_registradas) * 100).toFixed(1)
+        : 0;
+
+      const tasaAtencionDenuncias = stats.denuncias_vinchucas > 0
+        ? ((stats.denuncias_atendidas / stats.denuncias_vinchucas) * 100).toFixed(1)
+        : 0;
+
+      const promedioEjemplaresPorVivienda = stats.viviendas_positivas > 0
+        ? (stats.ejemplares_capturados / stats.viviendas_positivas).toFixed(1)
+        : 0;
+
+      const porcentajeIntraDomiciliario = stats.ejemplares_capturados > 0
+        ? ((stats.ejemplares_intra / stats.ejemplares_capturados) * 100).toFixed(1)
+        : 0;
+
+      const estadisticas = {
+        viviendasRegistradas: stats.viviendas_registradas || 0,
+        habitantesProtegidos: stats.habitantes_protegidos || 0,
+        viviendasEvaluadas: stats.viviendas_evaluadas || 0,
+        viviendasPositivas: stats.viviendas_positivas || 0,
+        tasaInfestacion: parseFloat(tasaInfestacion),
+        ejemplaresCapturados: stats.ejemplares_capturados || 0,
+        intraTotal: stats.ejemplares_intra || 0,
+        periTotal: stats.ejemplares_peri || 0,
+        viviendasRociadas: stats.viviendas_rociadas || 0,
+        coberturaRociado: parseFloat(coberturaRociado),
+        totalInsecticida: stats.total_insecticida || 0,
+        habitacionesNoRociadas: stats.habitaciones_no_rociadas || 0,
+        denunciasVinchucas: stats.denuncias_vinchucas || 0,
+        denunciasAtendidas: stats.denuncias_atendidas || 0,
+        tasaAtencionDenuncias: parseFloat(tasaAtencionDenuncias),
+        viviendasCerradas: stats.viviendas_cerradas || 0,
+        viviendasRenuentes: stats.viviendas_renuentes || 0,
+        promedioEjemplaresPorVivienda: parseFloat(promedioEjemplaresPorVivienda),
+        porcentajeIntraDomiciliario: parseFloat(porcentajeIntraDomiciliario)
+      };
+
+      res.json(estadisticas);
+    });
+  } catch (error) {
+    console.error('Error general en estadísticas filtradas:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+}

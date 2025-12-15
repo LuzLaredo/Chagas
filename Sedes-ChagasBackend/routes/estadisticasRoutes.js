@@ -1,4 +1,3 @@
-// routes/estadisticasRoutes.js
 import { Router } from "express";
 import {
   getEstadisticasGenerales,
@@ -7,8 +6,6 @@ import {
   getCostosModelos,
   getAllEstadisticas,
   getEstadisticasPorFechas,
-  getEstadisticasPorMunicipio,
-  getEstadisticasPorFechasYMunicipio,
   getEvolucionTemporal,
   getEficaciaRociado,
   getDistribucionEjemplares,
@@ -20,10 +17,15 @@ import {
   getAnalisisTemporal,
   getDistribucionGeografica,
   getAnalisisEjemplares,
-  getIndicadoresRendimiento
+  getIndicadoresRendimiento,
+  getEstadisticasFiltradas
 } from "../controllers/estadisticasController.js";
+import { verificarToken } from '../middlewares/authMiddleware.js';
 
 const router = Router();
+
+// Todas las rutas requieren autenticación
+router.use(verificarToken);
 
 // Rutas públicas para estadísticas (solo lectura)
 router.get("/generales", getEstadisticasGenerales);
@@ -32,8 +34,6 @@ router.get("/top-comunidades", getTopComunidades);
 router.get("/costos-modelos", getCostosModelos);
 router.get("/all", getAllEstadisticas);
 router.get("/por-fechas", getEstadisticasPorFechas);
-router.get("/por-municipio/:municipioId", getEstadisticasPorMunicipio);
-router.get("/por-fechas-municipio", getEstadisticasPorFechasYMunicipio);
 router.get("/municipios", getMunicipios);
 router.get("/evolucion-temporal", getEvolucionTemporal);
 router.get("/eficacia-rociado", getEficaciaRociado);
@@ -48,5 +48,6 @@ router.get("/analisis-temporal", getAnalisisTemporal);
 router.get("/distribucion-geografica", getDistribucionGeografica);
 router.get("/analisis-ejemplares", getAnalisisEjemplares);
 router.get("/indicadores-rendimiento", getIndicadoresRendimiento);
+router.get("/filtradas", getEstadisticasFiltradas);
 
 export default router;

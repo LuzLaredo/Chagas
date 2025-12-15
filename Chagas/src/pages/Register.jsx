@@ -13,7 +13,23 @@ function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPasswordRequirements, setShowPasswordRequirements] = useState(false);
   const navigate = useNavigate();
+
+  const validatePassword = (password) => {
+    return {
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumber: /[0-9]/.test(password),
+      hasSymbol: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
+      hasMinLength: password.length >= 6
+    };
+  };
+
+  const isPasswordValid = (password) => {
+    const requirements = validatePassword(password);
+    return Object.values(requirements).every(req => req === true);
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -26,6 +42,7 @@ function Register() {
     e.preventDefault();
     setError("");
     setSuccess("");
+    setShowPasswordRequirements(true);
     setLoading(true);
 
     // Validaciones
@@ -35,8 +52,8 @@ function Register() {
       return;
     }
 
-    if (formData.contrasena.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+    if (!isPasswordValid(formData.contrasena)) {
+      setError("La contraseña no cumple con todos los requisitos");
       setLoading(false);
       return;
     }
@@ -81,11 +98,49 @@ function Register() {
     }
   };
 
+  // 🔹 COMPONENTE PARA MOSTRAR REQUISITOS DE CONTRASEÑA
+  const PasswordRequirements = () => {
+    if (!showPasswordRequirements) return null;
+    
+    const requirements = validatePassword(formData.contrasena);
+    
+    return (
+      <div className="password-requirements">
+        <p style={{ fontSize: "0.9rem", marginBottom: "10px", color: "#666" }}>
+          <strong>La contraseña debe contener:</strong>
+        </p>
+        <ul style={{ 
+          listStyle: "none", 
+          padding: 0, 
+          margin: 0, 
+          fontSize: "0.8rem",
+          textAlign: "left" 
+        }}>
+          <li style={{ color: requirements.hasMinLength ? "green" : "red" }}>
+            {requirements.hasMinLength ? "✓" : "✗"} Al menos 6 caracteres
+          </li>
+          <li style={{ color: requirements.hasUpperCase ? "green" : "red" }}>
+            {requirements.hasUpperCase ? "✓" : "✗"} Una letra mayúscula
+          </li>
+          <li style={{ color: requirements.hasLowerCase ? "green" : "red" }}>
+            {requirements.hasLowerCase ? "✓" : "✗"} Una letra minúscula
+          </li>
+          <li style={{ color: requirements.hasNumber ? "green" : "red" }}>
+            {requirements.hasNumber ? "✓" : "✗"} Un número
+          </li>
+          <li style={{ color: requirements.hasSymbol ? "green" : "red" }}>
+            {requirements.hasSymbol ? "✓" : "✗"} Un símbolo especial
+          </li>
+        </ul>
+      </div>
+    );
+  };
+
   return (
     <div className="register-container">
       {/* Lado izquierdo */}
       <div className="register-info">
-        <h2>Programa Nacional de Chagas</h2>
+        <h2>Programa Departamental de Chagas Cochabamba</h2>
         <p>
           Sistema de Vigilancia, Denuncia y Tratamiento. <br />
           Un software para apoyar al personal de salud en la lucha contra el Chagas.
@@ -125,6 +180,9 @@ function Register() {
             required 
             minLength="6"
           />
+          
+          <PasswordRequirements />
+          
           <input 
             type="password" 
             name="confirmar_contrasena" 

@@ -50,6 +50,11 @@ import estadisticasRoutes from "./routes/estadisticasRoutes.js";
 import catalogosRoutes from "./routes/catalogosRoutes.js";
 import mapaEE1Routes from "./routes/mapaEE1Routes.js";
 import mapaGeneralRoutes from "./routes/mapaGeneralRoutes.js";
+import comunidadesRoutes from "./routes/comunidadesRoutes.js";
+import notificacionesRoutes from './routes/notificacionesRoutes.js';
+import detallesEE1Routes from "./routes/DetalleEE1Routes.js"; 
+
+
 
 // 📌 Ruta raíz
 app.get("/", (req, res) => {
@@ -71,6 +76,8 @@ app.get("/", (req, res) => {
       "/api/denuncias",
       "/api/mapaEE1",
       "/api/mapaGeneral",
+      "/api/comunidades",
+      "/api/detallesEE1/:id",
     ],
   });
 });
@@ -87,10 +94,14 @@ app.use("/api/viviendas", viviendasRoutes);
 
 app.use("/api/municipios", municipiosRoutes);
 app.use("/api/denuncias", denunciasRoutes);
+app.use("/api/comunidades", comunidadesRoutes);
 app.use("/api/estadisticas", estadisticasRoutes);
 app.use("/api/catalogos", catalogosRoutes);
 app.use("/api/mapaEE1", mapaEE1Routes);
 app.use("/api/mapaGeneral", mapaGeneralRoutes);
+app.use('/api/notificaciones', notificacionesRoutes);
+app.use("/api/detallesEE1", detallesEE1Routes); 
+
 
 // 📌 Iniciar servidor
 const PORT = process.env.PORT || 5000;

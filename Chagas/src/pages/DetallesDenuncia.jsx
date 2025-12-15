@@ -25,8 +25,29 @@ const DetallesDenuncia = () => {
     const cargarDenuncia = async () => {
       try {
         setLoading(true);
-        const denuncias = await denunciasService.getDenuncias();
-        const denunciaEncontrada = denuncias.find(d => d.id === parseInt(id));
+        
+        let denunciaEncontrada;
+        
+        // Obtener información del usuario
+        const userInfo = JSON.parse(localStorage.getItem('user') || '{}');
+        
+        // Roles que pueden ver cualquier denuncia
+        const rolesConAccesoTotal = ['jefe_grupo', 'administrador', 'tecnico'];
+        
+        if (userInfo && userInfo.rol && rolesConAccesoTotal.includes(userInfo.rol)) {
+          // Si tiene rol especial, cargar cualquier denuncia directamente
+          console.log(`🎯 Usuario con rol ${userInfo.rol} - Cargando cualquier denuncia`);
+          denunciaEncontrada = await denunciasService.getDenunciaById(parseInt(id));
+        } else {
+          // Para usuarios normales, usar la lógica original (solo sus denuncias)
+          try {
+            const denuncias = await denunciasService.getDenunciasByUser();
+            denunciaEncontrada = denuncias.find(d => d.id === parseInt(id));
+          } catch (authError) {
+            console.log('No autenticado, intentando cargar denuncia pública...');
+            denunciaEncontrada = await denunciasService.getDenunciaById(parseInt(id));
+          }
+        }
         
         if (denunciaEncontrada) {
           setDenuncia(denunciaEncontrada);
@@ -34,8 +55,8 @@ const DetallesDenuncia = () => {
           setError('Denuncia no encontrada');
         }
       } catch (err) {
-        setError('Error al cargar la denuncia');
-        console.error('Error:', err);
+        console.error('Error al cargar la denuncia:', err);
+        setError('Error al cargar la denuncia: ' + err.message);
       } finally {
         setLoading(false);
       }
@@ -131,11 +152,12 @@ const DetallesDenuncia = () => {
 
   const getEstadoColor = (estado) => {
     switch (estado) {
-      case 'recibida': return '#dc3545'; // Rojo (igual que en el mapa)
-      case 'programada': return '#fd7e14'; // Naranja (igual que en el mapa)
-      case 'realizada': return '#28a745'; // Verde (igual que en el mapa)
-      case 'cancelada': return '#000000'; // Negro (igual que en el mapa)
-      default: return '#6c757d'; // Gris (igual que en el mapa)
+      case 'recibida': return '#dc3545';
+      case 'programada': return '#fd7e14';
+      case 'realizada': return '#28a745';
+      case 'cancelada': return '#000000';
+      case 'reprogramada': return '#ffc107'; // Color amarillo para reprogramada
+      default: return '#6c757d';
     }
   };
 
@@ -145,6 +167,7 @@ const DetallesDenuncia = () => {
       case 'programada': return 'En proceso';
       case 'realizada': return 'Verificado';
       case 'cancelada': return 'Cancelada';
+      case 'reprogramada': return 'Reprogramada';
       default: return estado;
     }
   };
@@ -159,17 +182,13 @@ const DetallesDenuncia = () => {
     );
   }
 
-  // Debug: mostrar información básica
-  console.log('DetallesDenuncia renderizado con ID:', id);
-  console.log('Denuncia encontrada:', denuncia);
-
   if (error || !denuncia) {
     return (
       <div className="detalles-denuncia-container">
         <div className="error-message">
           <h2>Error</h2>
           <p>{error || 'Denuncia no encontrada'}</p>
-          <button onClick={() => navigate('/denuncias')} className="btn-back">
+          <button onClick={() => navigate('/denuncia')} className="btn-back">
             Volver a Denuncias
           </button>
         </div>
@@ -181,17 +200,6 @@ const DetallesDenuncia = () => {
     denuncia.fotos_vinchucas.split(',').filter(foto => foto.trim()) : [];
   
   const fotoVivienda = denuncia.foto_vivienda ? [denuncia.foto_vivienda] : [];
-  
-  // Debug: mostrar información de fotos
-  console.log('=== DEBUG IMÁGENES ===');
-  console.log('Denuncia completa:', denuncia);
-  console.log('Fotos de vinchucas en DetallesDenuncia:', denuncia.fotos_vinchucas);
-  console.log('Fotos de vinchucas procesadas:', fotosVinchucas);
-  console.log('Foto de vivienda en DetallesDenuncia:', denuncia.foto_vivienda);
-  console.log('Foto de vivienda procesada:', fotoVivienda);
-  console.log('Todas las fotos combinadas:', [...fotoVivienda, ...fotosVinchucas]);
-  console.log('Índice actual:', currentImageIndex);
-  console.log('=====================');
 
   return (
     <div className="detalles-denuncia-container">
@@ -203,7 +211,7 @@ const DetallesDenuncia = () => {
         <div className="header-actions">
           <button 
             className="btn-back"
-            onClick={() => navigate('/denuncias')}
+            onClick={() => navigate('/denuncia')}
           >
             ← Volver a Denuncias
           </button>
@@ -223,6 +231,14 @@ const DetallesDenuncia = () => {
             <div className="info-item">
               <strong>N° de vivienda:</strong> {denuncia.numero_vivienda || 'No especificado'}
             </div>
+            <div className="info-item">
+              <strong>Municipio:</strong> {denuncia.nombre_municipio || 'No especificado'}
+            </div>
+            {denuncia.nombre_comunidad && (
+              <div className="info-item">
+                <strong>Comunidad:</strong> {denuncia.nombre_comunidad}
+              </div>
+            )}
             <div className="info-item">
               <strong>Descripción:</strong> {denuncia.descripcion || 'Sin descripción'}
             </div>
@@ -256,6 +272,16 @@ const DetallesDenuncia = () => {
                 {getEstadoTexto(denuncia.estado_denuncia)}
               </span>
             </div>
+
+            {/* 🆕 MOSTRAR MOTIVO DE REPROGRAMACIÓN SOLO SI EL ESTADO ES "reprogramada" */}
+            {denuncia.estado_denuncia === 'reprogramada' && denuncia.motivo_reprogramacion && (
+              <div className="info-item motivo-reprogramacion">
+                <strong>Motivo de Reprogramación:</strong> 
+                <div className="motivo-texto">
+                  {denuncia.motivo_reprogramacion}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -355,7 +381,6 @@ const DetallesDenuncia = () => {
           </div>
         </div>
       </div>
-
     </div>
   );
 };

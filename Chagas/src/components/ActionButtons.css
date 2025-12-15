@@ -3,12 +3,20 @@
 /* Contenedor centrado y compacto */
 .action-buttons-container {
   display: flex;
+  flex-direction: column;
   justify-content: center;
-  gap: 1.5rem; /* un poco más compacto */
+  gap: 1rem; /* Reducido el gap entre botones y mensaje */
   margin-top: 1.5rem;
-  max-width: 500px; /* ancho máximo */
+  max-width: 500px;
   margin-left: auto;
   margin-right: auto;
+}
+
+.buttons-row {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin-bottom: 0; /* Asegurar que no haya margen inferior */
 }
 
 /* Botón Programar */
@@ -25,28 +33,126 @@
   transition: all 0.3s ease;
 }
 
-/* Hover */
-.action-button-programar:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+/* Botón Reprogramar - ESTILO AMARILLO */
+.action-button-programar.reprogramar-button {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border: 2px solid #d97706;
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
 }
 
-/* Botón Formulario */
+/* Botón Formulario - MISMO ESTILO ROJO QUE PROGRAMAR */
 .action-button-formulario {
   flex: 1;
-  background: linear-gradient(135deg, #fbcfe8 0%, #f9a8d4 100%);
-  color: #831843;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
   font-weight: 700;
   font-size: 1.15rem;
   padding: 0.9rem 1.8rem;
-  border: 2px solid #f472b6;
+  border: 2px solid #dc2626;
   border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(244, 114, 182, 0.3);
+  box-shadow: 0 4px 8px rgba(220, 38, 38, 0.3);
   transition: all 0.3s ease;
 }
 
-/* Hover */
-.action-button-formulario:hover {
+/* Hover para botón Programar normal */
+.action-button-programar:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 6px 12px rgba(244, 114, 182, 0.4);
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* Hover para botón Reprogramar */
+.action-button-programar.reprogramar-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+/* Hover para botón Formulario */
+.action-button-formulario:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(220, 38, 38, 0.4);
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+}
+
+/* Estilo cuando están DESHABILITADOS */
+.action-button-programar:disabled,
+.action-button-formulario:disabled {
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+  color: #e5e7eb;
+  border: 2px solid #9ca3af;
+  box-shadow: 0 2px 4px rgba(156, 163, 175, 0.2);
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Efecto hover deshabilitado (sin cambios) */
+.action-button-programar:disabled:hover,
+.action-button-formulario:disabled:hover {
+  transform: none;
+  box-shadow: 0 2px 4px rgba(156, 163, 175, 0.2);
+  background: linear-gradient(135deg, #9ca3af 0%, #6b7280 100%);
+}
+
+/* ✅ MENSAJE EXPLICATIVO - AHORA DEBAJO */
+.explicacion-estado {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border: 1px solid #bae6fd;
+  border-radius: 8px;
+  margin-top: 0; /* Sin margen superior, viene después de los botones */
+  text-align: center;
+}
+
+.icono-info {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.texto-explicacion {
+  font-size: 14px;
+  color: #0369a1;
+  line-height: 1.4;
+  font-weight: 500;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .buttons-row {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
+  .action-button-programar,
+  .action-button-formulario {
+    width: 100%;
+    max-width: 280px;
+  }
+
+  .explicacion-estado {
+    margin: 0 5px;
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .texto-explicacion {
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px) {
+  .explicacion-estado {
+    padding: 10px 12px;
+  }
+  
+  .texto-explicacion {
+    font-size: 13px;
+  }
 }

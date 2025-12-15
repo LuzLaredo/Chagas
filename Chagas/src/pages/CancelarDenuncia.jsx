@@ -11,6 +11,13 @@ const CancelarDenuncia = ({ denuncia, onClose, onSuccess }) => {
   const [motivo, setMotivo] = useState('');
   const [comentarios, setComentarios] = useState('');
 
+  // 🆕 VERIFICAR SI LA DENUNCIA PUEDE SER CANCELADA
+  useEffect(() => {
+    if (denuncia && (denuncia.estado_denuncia === 'realizada' || denuncia.estado_denuncia === 'cancelada')) {
+      setError('Esta denuncia no puede ser cancelada porque ya ha sido verificada o está cancelada');
+    }
+  }, [denuncia]);
+
   // Motivos de cancelación disponibles
   const motivos = [
     {
@@ -45,8 +52,6 @@ const CancelarDenuncia = ({ denuncia, onClose, onSuccess }) => {
     }
   ];
 
-  // No necesitamos useEffect para obtener datos, vienen como props
-
   const handleMotivoChange = (motivoId) => {
     setMotivo(motivoId);
     setError(null);
@@ -60,6 +65,13 @@ const CancelarDenuncia = ({ denuncia, onClose, onSuccess }) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
+    // 🆕 VALIDAR QUE LA DENUNCIA PUEDA SER CANCELADA
+    if (denuncia.estado_denuncia === 'realizada' || denuncia.estado_denuncia === 'cancelada') {
+      setError('Esta denuncia no puede ser cancelada porque ya ha sido verificada o está cancelada');
+      setLoading(false);
+      return;
+    }
 
     // Validar que se haya seleccionado un motivo
     if (!motivo) {
@@ -119,10 +131,27 @@ const CancelarDenuncia = ({ denuncia, onClose, onSuccess }) => {
     );
   }
 
-  // Debug: mostrar propiedades de la denuncia
-  console.log('Denuncia recibida en CancelarDenuncia:', denuncia);
-  console.log('denuncia.denuncia_id:', denuncia.denuncia_id);
-  console.log('denuncia.id:', denuncia.id);
+  // 🆕 MOSTRAR MENSAJE SI LA DENUNCIA NO PUEDE SER CANCELADA
+  if (denuncia.estado_denuncia === 'realizada' || denuncia.estado_denuncia === 'cancelada') {
+    return (
+      <div className="cancelar-denuncia-container">
+        <div className="error-message-full">
+          <h2>❌ No se puede cancelar esta denuncia</h2>
+          <p>
+            {denuncia.estado_denuncia === 'realizada' 
+              ? 'Esta denuncia ya ha sido verificada y no puede ser cancelada.' 
+              : 'Esta denuncia ya está cancelada.'}
+          </p>
+          <button 
+            className="btn-volver"
+            onClick={handleVolver}
+          >
+            Volver a la lista
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="cancelar-denuncia-container">
@@ -142,6 +171,17 @@ const CancelarDenuncia = ({ denuncia, onClose, onSuccess }) => {
             <h3>Número de denuncia: D-{(denuncia.denuncia_id || denuncia.id || 'N/A').toString().padStart(3, '0')}</h3>
             <p><strong>Jefe de familia:</strong> {denuncia.jefe_familia || 'No especificado'}</p>
             <p><strong>Fecha de registro:</strong> {new Date(denuncia.fecha_creacion).toLocaleDateString('es-ES')}</p>
+            <p><strong>Estado actual:</strong> 
+              <span className={`estado-indicator ${
+                denuncia.estado_denuncia === 'recibida' ? 'estado-sin-revisar' :
+                denuncia.estado_denuncia === 'programada' ? 'estado-en-proceso' :
+                'estado-verificado'
+              }`}>
+                {denuncia.estado_denuncia === 'recibida' ? 'Sin revisar' :
+                 denuncia.estado_denuncia === 'programada' ? 'En proceso' :
+                 denuncia.estado_denuncia}
+              </span>
+            </p>
           </div>
 
           {/* Motivo de cancelación */}

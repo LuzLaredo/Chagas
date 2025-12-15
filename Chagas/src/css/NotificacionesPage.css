@@ -1,0 +1,201 @@
+/* --- ESTILOS PARA LA PÁGINA COMPLETA DE HISTORIAL --- */
+.notifications-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px;
+    padding-top: 160px;
+    /* Fixed Navbar clearance */
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* HEADER */
+.notifications-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.notifications-header h2 {
+    margin: 0;
+    color: #262626;
+    font-size: 1.8em;
+}
+
+/* BOTÓN: Marcar todas */
+.mark-all-read-button {
+    background-color: #52c41a;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.mark-all-read-button:hover {
+    background-color: #389e0d;
+}
+
+/* LISTA */
+.notifications-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* TARJETAS */
+.notification-card {
+    padding: 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #e8e8e8;
+}
+
+/* NO LEÍDA */
+.notification-card.unread {
+    background-color: #e6f7ff;
+    border-left: 5px solid #1890ff;
+    box-shadow: 0 1px 4px rgba(24, 144, 255, 0.1);
+}
+
+/* LEÍDA */
+.notification-card.read {
+    background-color: #f9f9f9;
+    color: #595959;
+}
+
+.notification-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Contenido */
+.notification-content-main {
+    margin-bottom: 8px;
+}
+
+.notification-type {
+    font-size: 0.75em;
+    font-weight: bold;
+    color: #722ed1;
+    background-color: #f9f0ff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.notification-message {
+    margin: 5px 0 0 0;
+    font-size: 1em;
+    font-weight: 400;
+    color: #262626;
+}
+
+/* Mensaje en negrita si no está leído */
+.notification-card.unread .notification-message {
+    font-weight: 600;
+}
+
+/* META */
+.notification-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85em;
+    color: #8c8c8c;
+    border-top: 1px solid #f0f0f0;
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+.notification-status {
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+.status-unread {
+    color: #faad14;
+    background-color: #fffbe6;
+}
+
+.status-read {
+    color: #595959;
+    background-color: #f0f0f0;
+}
+
+/* ==========================================================
+   RESPONSIVE - PARA TODAS LAS PANTALLAS
+   ========================================================== */
+
+/* Laptop y tablets horizontales */
+@media (max-width: 1200px) {
+    .notifications-container {
+        padding: 50px;
+        padding-top: 140px;
+    }
+}
+
+/* Tablets verticales */
+@media (max-width: 900px) {
+    .notifications-container {
+        padding: 40px;
+        padding-top: 140px;
+        margin: 0 20px;
+    }
+
+    .notifications-header h2 {
+        font-size: 1.6em;
+    }
+}
+
+/* Celulares grandes */
+@media (max-width: 600px) {
+    .notifications-container {
+        padding: 28px;
+        padding-top: 140px;
+        margin: 0 10px;
+    }
+
+    .notifications-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .mark-all-read-button {
+        width: 100%;
+        text-align: center;
+    }
+
+    .notification-card {
+        padding: 14px;
+    }
+
+    .notification-message {
+        font-size: 0.95em;
+    }
+}
+
+/* Celulares pequeños */
+@media (max-width: 400px) {
+    .notifications-container {
+        padding: 20px;
+        padding-top: 140px;
+    }
+
+    .notification-card {
+        padding: 12px;
+    }
+
+    .notifications-header h2 {
+        font-size: 1.4em;
+    }
+}

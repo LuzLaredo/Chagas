@@ -5,19 +5,26 @@
 /* 1. Reset/Base styles */
 :root {
     /* Paleta de colores ajustada a tonos ROJOS como tema principal. */
-    --color-primary: #C83737; /* Rojo Corporativo principal */
-    --color-primary-dark: #A92B2B; /* Tono más oscuro para hover/focus */
+    --color-primary: #C83737;
+    /* Rojo Corporativo principal */
+    --color-primary-dark: #A92B2B;
+    /* Tono más oscuro para hover/focus */
     --color-header-text: white;
-    --color-bg-light: #f9f9f9; /* Fondo neutral */
+    --color-bg-light: #f9f9f9;
+    /* Fondo neutral */
     --color-border: #e0e0e0;
-    
+
     /* Colores SEMÁNTICOS (usados en la columna Resultado del JSX) */
     /* Para diferenciarse del rojo primario, Success (Negativo) e Info tienen colores de contraste: */
-    --color-success: #34495E; /* Azul-Gris Oscuro (Contraste para el estado "Negativo") */
-    --color-danger: #E74C3C; /* Rojo Vívido (Para el estado "Positivo Pendiente") */
-    --color-info: #E67E22; /* Terracota/Naranja Muted (Para el estado "Positivo Rociado Realizado") */
-    
-    --color-warning: #8B0000; /* Nuevo Rojo Vino/Marron Oscuro para botón de acción */
+    --color-success: #34495E;
+    /* Azul-Gris Oscuro (Contraste para el estado "Negativo") */
+    --color-danger: #E74C3C;
+    /* Rojo Vívido (Para el estado "Positivo Pendiente") */
+    --color-info: #E67E22;
+    /* Terracota/Naranja Muted (Para el estado "Positivo Rociado Realizado") */
+
+    --color-warning: #8B0000;
+    /* Nuevo Rojo Vino/Marron Oscuro para botón de acción */
 }
 
 .mapas-container {
@@ -30,25 +37,32 @@
 /* 2. Header and Title */
 .mapas-header {
     margin-bottom: 25px;
-    padding-bottom: 25px; 
+    padding-bottom: 25px;
     border-bottom: 2px solid var(--color-primary);
     /* Fondo semi-transparente para asegurar la visibilidad del título */
-    padding-top: 25px; /* Más padding superior para centrado vertical */
-        margin-top: 50px; 
+    padding-top: 160px;
+    /* Adjusted to clear navbar */
+    margin-top: 0;
 }
 
 .mapas-header h1 {
-    font-size: 2.2rem; /* Tamaño de fuente aumentado para impacto */
-    color: white; /* Título principal en blanco */
+    font-size: 2.2rem;
+    /* Tamaño de fuente aumentado para impacto */
+    color: white;
+    /* Título principal en blanco */
     margin: 0 0 5px 0;
     font-weight: 700;
-    text-shadow: 1px 1px 4px rgba(0, 0, 0, 1); /* Sombra mejorada */
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 1);
+    /* Sombra mejorada */
 }
 
 .mapas-header p {
-    font-size: 0.8rem; /* Reducido de 0.95rem a 0.8rem */
-    color: #ccc; /* Color de descripción más claro para el nuevo fondo oscuro */
-    margin-top: 10px; /* Agregado para separarlo más del h1 */
+    font-size: 0.8rem;
+    /* Reducido de 0.95rem a 0.8rem */
+    color: #ccc;
+    /* Color de descripción más claro para el nuevo fondo oscuro */
+    margin-top: 10px;
+    /* Agregado para separarlo más del h1 */
 }
 
 /* 3. Loading and Error States */
@@ -65,7 +79,8 @@
     border: 1px solid var(--color-danger);
     color: var(--color-danger);
     margin: 20px 0;
-    background-color: #f8d7da; /* Fondo Rojo Claro */
+    background-color: #f8d7da;
+    /* Fondo Rojo Claro */
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -86,7 +101,8 @@
 }
 
 .btn-retry:hover {
-    background-color: #c82333; /* Darker red */
+    background-color: #c82333;
+    /* Darker red */
     transform: translateY(-1px);
 }
 
@@ -116,7 +132,8 @@
     border-radius: 4px;
     border: 1px solid #ccc;
     min-width: 180px;
-    appearance: none; /* Remove default arrow */
+    appearance: none;
+    /* Remove default arrow */
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23333' width='18px' height='18px'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: right 10px center;
@@ -128,7 +145,8 @@
 .estado-filter:focus {
     border-color: var(--color-primary);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(200, 55, 55, 0.2); /* Sombra basada en el nuevo color primario */
+    box-shadow: 0 0 0 3px rgba(200, 55, 55, 0.2);
+    /* Sombra basada en el nuevo color primario */
 }
 
 .filter-info {
@@ -151,7 +169,8 @@ table {
     border-collapse: separate;
     border-spacing: 0;
     /* Los border-radius se aplican al contenedor y al thead/tfoot si es necesario */
-    min-width: 700px; /* Asegura un ancho mínimo para evitar el colapso total */
+    min-width: 700px;
+    /* Asegura un ancho mínimo para evitar el colapso total */
 }
 
 /* 6. Table Header (th) */
@@ -160,7 +179,7 @@ thead tr {
 }
 
 th {
-    background-color: var(--color-primary) !important; 
+    background-color: var(--color-primary) !important;
     color: var(--color-header-text) !important;
     padding: 14px 15px;
     text-align: left;
@@ -183,7 +202,8 @@ tbody tr {
 }
 
 tbody tr:hover {
-    background-color: #FFEBEB !important; /* Nuevo hover: Rosa pálido */
+    background-color: #FFEBEB !important;
+    /* Nuevo hover: Rosa pálido */
 }
 
 td {
@@ -233,7 +253,7 @@ tbody tr:last-child td {
         align-items: stretch;
         gap: 15px;
     }
-    
+
     .filter-info {
         margin-left: 0;
         text-align: center;
@@ -242,7 +262,7 @@ tbody tr:last-child td {
         padding-top: 10px;
         border-top: 1px solid var(--color-border);
     }
-    
+
     .estado-filter {
         width: 100%;
         min-width: initial;

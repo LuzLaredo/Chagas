@@ -43,8 +43,11 @@ export const crearUsuario = async (usuarioData, callback) => {
 // ========================================================
 // 🔹 Buscar usuario por email
 // ========================================================
+// ========================================================
+// 🔹 Buscar usuario por email (versión mejorada)
+// ========================================================
 export const buscarPorEmail = (correo, callback) => {
-  const query = "SELECT * FROM Usuarios WHERE correo_electronico = ?";
+  const query = "SELECT * FROM Usuarios WHERE correo_electronico = ? AND estado = 'activo'";
   executeQuery(query, [correo], (err, results) => {
     if (err) return callback(err);
     callback(null, results[0]);
@@ -85,20 +88,38 @@ export const obtenerTodos = (callback) => {
 // ========================================================
 // 🔹 Actualizar usuario
 // ========================================================
+// ========================================================
+// 🔹 Actualizar usuario (versión corregida)
+// ========================================================
 export const actualizarUsuario = (id, usuarioData, callback) => {
-  const query = `
-    UPDATE Usuarios 
-    SET nombre_completo=?, correo_electronico=?, contrasena=?, rol=?, estado=? 
-    WHERE usuario_id=?
-  `;
-  const values = [
-    usuarioData.nombre_completo,
-    usuarioData.correo_electronico,
-    usuarioData.contrasena,
-    usuarioData.rol,
-    usuarioData.estado,
-    id,
-  ];
+  let query;
+  let values;
+
+  // ✅ MEJORA: Verificar explícitamente si contrasena tiene valor
+  if (usuarioData.contrasena && usuarioData.contrasena !== null && usuarioData.contrasena !== '') {
+    query = `UPDATE Usuarios SET nombre_completo=?, correo_electronico=?, contrasena=?, rol=?, estado=? WHERE usuario_id=?`;
+    values = [
+      usuarioData.nombre_completo,
+      usuarioData.correo_electronico,
+      usuarioData.contrasena,
+      usuarioData.rol,
+      usuarioData.estado,
+      id,
+    ];
+  } else {
+    query = `UPDATE Usuarios SET nombre_completo=?, correo_electronico=?, rol=?, estado=? WHERE usuario_id=?`;
+    values = [
+      usuarioData.nombre_completo,
+      usuarioData.correo_electronico,
+      usuarioData.rol,
+      usuarioData.estado,
+      id,
+    ];
+  }
+
+  console.log("Ejecutando query:", query);
+  console.log("Valores:", values);
+
   executeQuery(query, values, callback);
 };
 

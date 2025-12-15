@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import '../css/Mapas.css'; 
@@ -9,7 +10,7 @@ import { baseUrl } from "../api/BaseUrl";
 // .mapas-filters, .filter-group, .filter-group label, .estado-filter, .filter-info
 
 // =========================================================================
-// CONFIGURACIÓN DE SERVICIO (API REAL)
+// CONFIGURACIÓN DE SERVICIO (API REAL) (SIN CAMBIOS)
 // =========================================================================
 
 const API_BASE_URL = `${baseUrl}`; // Base URL
@@ -32,7 +33,7 @@ const generalService = {
 };
 
 // =========================================================================
-// CONFIGURACIÓN DE LEAFLET E ICONOS
+// CONFIGURACIÓN DE LEAFLET E ICONOS (SIN CAMBIOS)
 // =========================================================================
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -52,6 +53,7 @@ const getCircleIcon = (color) => {
 
 const MapasGeneral = () => {
     const navigate = useNavigate();
+    const { usuario, token } = useAuth();
     const [generalData, setGeneralData] = useState([]);
     const [municipios, setMunicipios] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -124,7 +126,7 @@ const MapasGeneral = () => {
     };
     
 // =========================================================================
-// CARGA DE DATOS, MAPA Y FILTRADO
+// CARGA DE DATOS, MAPA Y FILTRADO (SIN CAMBIOS ESTRUCTURALES, SOLO OPTIMIZACIÓN)
 // =========================================================================
 
     useEffect(() => {
@@ -133,13 +135,44 @@ const MapasGeneral = () => {
                 setLoading(true);
                 setError(null);
                 
-                const [generalDataResponse, municipiosResponse] = await Promise.all([
-                    generalService.getMapaGeneral(),
-                    generalService.getMunicipios()
-                ]);
+                // Si es supervisor, cargar solo su municipio
+                if (usuario?.rol === 'supervisor' && (usuario?.usuario_id || usuario?.id)) {
+                    const usuarioId = usuario.usuario_id || usuario.id;
+                    const headers = token ? { "Authorization": `Bearer ${token}` } : {};
+                    
+                    // Obtener municipio del supervisor
+                    const municipioRes = await fetch(`${API_BASE_URL}/api/usuarios/${usuarioId}/municipios`, {
+                        headers: headers
+                    });
+                    
+                    if (!municipioRes.ok) {
+                        console.error(`Error ${municipioRes.status} al obtener municipios:`, municipioRes.statusText);
+                        if (municipioRes.status === 401) {
+                            console.error('Token inválido o expirado. Por favor, inicia sesión nuevamente.');
+                        }
+                    } else {
+                        const municipiosData = await municipioRes.json();
+                        setMunicipios(municipiosData || []);
+                        
+                        // Si solo hay un municipio, seleccionarlo automáticamente
+                        if (municipiosData.length === 1) {
+                            setSelectedMunicipio(municipiosData[0].nombre_municipio);
+                        }
+                    }
+                    
+                    // Los datos del mapa ya vienen filtrados por el backend
+                    const generalDataResponse = await generalService.getMapaGeneral();
+                    setGeneralData(generalDataResponse || []);
+                } else {
+                    // Para otros roles, cargar todos los datos
+                    const [generalDataResponse, municipiosResponse] = await Promise.all([
+                        generalService.getMapaGeneral(),
+                        generalService.getMunicipios()
+                    ]);
 
-                setGeneralData(generalDataResponse || []);
-                setMunicipios(municipiosResponse || []);
+                    setGeneralData(generalDataResponse || []);
+                    setMunicipios(municipiosResponse || []);
+                }
 
             } catch (err) {
                 console.error('Error al cargar datos General o Municipios:', err);
@@ -149,51 +182,47 @@ const MapasGeneral = () => {
             }
         };
         loadData();
-    }, []);
+    }, [usuario, token]);
 
-    // ... [Efectos para inicializar el mapa y manejar la navegación se mantienen iguales] ...
+    // Inicialización del mapa (OPTIMIZADO)
     useEffect(() => {
         const initializeMap = () => {
             if (mapInstance.current) {
                 mapInstance.current.remove();
                 mapInstance.current = null;
-                setMapLoaded(false);
+                markersRef.current = [];
             }
 
-            setTimeout(() => {
-                if (mapRef.current && !mapInstance.current) {
+            if (mapRef.current) {
+                try {
                     const defaultLat = -17.3938; 
                     const defaultLng = -66.1570;
                     
-                    try {
-                        mapInstance.current = L.map(mapRef.current).setView([defaultLat, defaultLng], 9);
-                        
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                            attribution: '© OpenStreetMap contributors'
-                        }).addTo(mapInstance.current);
-                        
-                        setMapLoaded(true);
-                        
-                        setTimeout(() => {
-                            if (mapInstance.current) {
-                                mapInstance.current.invalidateSize();
-                            }
-                        }, 200);
-                    } catch (error) {
-                        console.error('Error al inicializar el mapa:', error);
-                        setMapLoaded(false);
-                    }
+                    mapInstance.current = L.map(mapRef.current).setView([defaultLat, defaultLng], 9);
+                    
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '© OpenStreetMap contributors'
+                    }).addTo(mapInstance.current);
+                    
+                    setMapLoaded(true);
+                    
+                    // Llamada inmediata para asegurar el redimensionamiento
+                    mapInstance.current.invalidateSize(); 
+                } catch (error) {
+                    console.error('Error al inicializar el mapa:', error);
+                    setMapLoaded(false);
                 }
-            }, 100);
+            }
         };
 
-        const timer = setTimeout(initializeMap, 1000); 
+        const timer = setTimeout(initializeMap, 50); 
         
         return () => {
             clearTimeout(timer);
             if (mapInstance.current) {
                 mapInstance.current.remove();
                 mapInstance.current = null;
+                markersRef.current = [];
             }
         };
     }, []);
@@ -206,9 +235,11 @@ const MapasGeneral = () => {
 
         if (selectedEstadoDetalle !== 'todos') {
             if (d.tipo_registro === 'evaluacion_entomologica') {
+                // Filtra por si el rociado fue 'Sí' o 'No' (asumiendo que ese es el valor en la DB)
                 const requiredRociado = selectedEstadoDetalle === 'si' ? 'Sí' : 'No';
                 byEstadoDetalle = d.rociado === requiredRociado;
             } else if (d.tipo_registro === 'denuncia') {
+                // Filtra por el estado de la denuncia (recibida, programada, etc.)
                 byEstadoDetalle = d.estado_resultado === selectedEstadoDetalle;
             } else {
                 byEstadoDetalle = false; 
@@ -238,9 +269,10 @@ const MapasGeneral = () => {
                             icon: markerIcon
                         }).addTo(mapInstance.current);
 
+                        // 🚨 CORRECCIÓN DE RUTA DE DETALLE EN EL POPUP
                         const detailPath = punto.tipo_registro === 'denuncia' 
-                                                 ? `/detalles-denuncia/${punto.id}` 
-                                                 : `/detalles-ee1/${punto.id}`;
+                            ? `/cargaRociado/${punto.id}` // Ruta para que el técnico trabaje la denuncia
+                            : `/DetallesEE1/${punto.id}`; // Ruta para ver el detalle de la EE
 
                         marker.bindPopup(`
                             <div style="text-align: left; min-width: 250px; font-size: 13px;">
@@ -290,7 +322,7 @@ const MapasGeneral = () => {
         }
     }, [filteredData, mapLoaded]);
     
-    // ... [Efecto para manejar la navegación se mantiene igual] ...
+    // Efecto para manejar la navegación del botón dentro del popup
     useEffect(() => {
         const handlePopupClick = (event) => {
             if (event.target.classList.contains('btn-ver-detalles-mapa')) {
@@ -306,6 +338,7 @@ const MapasGeneral = () => {
             }
         };
 
+        // Adjuntar el listener al documento
         document.addEventListener('click', handlePopupClick);
 
         return () => {
@@ -329,7 +362,7 @@ const MapasGeneral = () => {
     }
 
 // =========================================================================
-// RENDERIZADO DEL COMPONENTE Y FILTROS (DISEÑO MEJORADO)
+// RENDERIZADO DEL COMPONENTE Y FILTROS
 // =========================================================================
 
     const renderEstadoDetalleOptions = () => {
@@ -372,7 +405,7 @@ const MapasGeneral = () => {
             </div>
 
             {error && (
-                <div className="error">
+                <div className="error-box">
                     Error de conexión: {error}
                     <button 
                         onClick={() => window.location.reload()} 
@@ -383,7 +416,7 @@ const MapasGeneral = () => {
                 </div>
             )}
 
-            {/* SECCIÓN DE FILTROS (DISEÑO MEJORADO) */}
+            {/* SECCIÓN DE FILTROS */}
             <div className="mapas-filters">
                 
                 {/* FILTRO 1: MUNICIPIO */}
@@ -394,15 +427,31 @@ const MapasGeneral = () => {
                         value={selectedMunicipio} 
                         onChange={(e) => setSelectedMunicipio(e.target.value)}
                         className="estado-filter"
+                        disabled={usuario?.rol === 'supervisor' && municipios.length === 1}
                     >
-                        <option value="todos">Todos</option>
-                        {municipios.map(m => (
-                            <option key={m.municipio_id} value={m.nombre_municipio}>
-                                {m.nombre_municipio}
-                            </option>
-                        ))}
+                        {usuario?.rol === 'supervisor' && municipios.length === 1 ? (
+                            municipios.map(m => (
+                                <option key={m.municipio_id} value={m.nombre_municipio}>
+                                    {m.nombre_municipio}
+                                </option>
+                            ))
+                        ) : (
+                            <>
+                                <option value="todos">Todos</option>
+                                {municipios.map(m => (
+                                    <option key={m.municipio_id} value={m.nombre_municipio}>
+                                        {m.nombre_municipio}
+                                    </option>
+                                ))}
+                            </>
+                        )}
                         {municipios.length === 0 && !loading && <option disabled>No se cargaron municipios</option>}
                     </select>
+                    {usuario?.rol === 'supervisor' && municipios.length === 1 && (
+                        <span style={{ fontSize: '12px', color: '#666', marginLeft: '8px' }}>
+                            (Solo su municipio asignado)
+                        </span>
+                    )}
                 </div>
                 
                 {/* FILTRO 2: TIPO DE REGISTRO */}
@@ -437,7 +486,7 @@ const MapasGeneral = () => {
                     </select>
                 </div>
 
-                {/* INFO DE REGISTROS (SE ELIMINAN LOS **) */}
+                {/* INFO DE REGISTROS */}
                 <div className="filter-info">
                     <span>Mostrando: {filteredData.length} registros</span>
                 </div>

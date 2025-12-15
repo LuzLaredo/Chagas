@@ -1,39 +1,47 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-// 💡 Importar el hook useAuth (Ajusta la ruta si es necesario)
-import { useAuth } from "../pages/AuthContext"; 
+import { useAuth } from "../pages/AuthContext";
+import "./ProtectedRoute.css"; // Importa el CSS
 
-const ProtectedRoute = ({ children }) => {
-  // 💡 Ahora usamos las propiedades isLoading y usuario del nuevo contexto
-  const { usuario, isLoading } = useAuth(); 
-  
-  // Roles permitidos para esta ruta
-  const allowedRoles = ["administrador", "jefe_grupo"];
+const ProtectedRoute = ({ 
+  children, 
+  allowedRoles = [], 
+  requireAuth = true 
+}) => {
+  const { usuario, isLoading } = useAuth();
 
-  if (isLoading) {
-    // Muestra un mensaje de carga mientras se inicializa el estado de autenticación (lee localStorage)
-    return <div style={{ padding: "2rem", textAlign: "center" }}>
-      ⏳ Verificando credenciales...
-    </div>;
-  }
-    
-  if (!usuario) {
-    // Si no hay usuario, redirige al login
-    return <Navigate to="/login" replace />;
-  }
+  if (isLoading) {
+    return (
+      <div className="access-denied-container">
+        ⏳ Verificando credenciales...
+      </div>
+    );
+  }
 
-  // Comprueba si el rol del usuario (usuario.rol) está incluido en los roles permitidos
-  // NOTA: Tu AuthProvider ya tiene una función hasRole(allowedRoles), 
-  // pero para mantener la estructura original de ProtectedRoute, lo hacemos aquí:
-  if (!allowedRoles.includes(usuario.rol)) {
-    // Si el rol no es permitido, mostrar mensaje de acceso denegado
-    return <div style={{ padding: "2rem", textAlign: "center" }}>
-      ❌ Acceso denegado. No tienes permisos para ver esta página.
-    </div>;
-  }
+  if (requireAuth && !usuario) {
+    return <Navigate to="/login" replace />;
+  }
 
-  // Si pasa todas las comprobaciones (no está cargando, está logueado y tiene rol permitido)
-  return children;
+  if (allowedRoles.length > 0) {
+    if (!usuario) {
+      return <Navigate to="/login" replace />;
+    }
+
+    if (!allowedRoles.includes(usuario.rol)) {
+      return (
+        <div className="access-denied-container">
+          <div className="access-denied-message">
+            ❌ Acceso denegado. No tienes permisos para ver esta página.
+          </div>
+          <p className="access-denied-subtext">
+            Contacta al administrador si crees que esto es un error.
+          </p>
+        </div>
+      );
+    }
+  }
+
+  return children;
 };
 
 export default ProtectedRoute;

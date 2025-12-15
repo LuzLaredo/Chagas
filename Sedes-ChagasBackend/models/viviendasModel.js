@@ -1,5 +1,5 @@
 // ===========================================================
-// models/viviendasModel.js
+// models/viviendasModel.js - VERSIÓN ACTUALIZADA
 // ===========================================================
 
 import db from "../config/db.js";
@@ -17,13 +17,14 @@ class Vivienda {
       longitud,
       altura,
       comunidad_id,
+      municipio_id, // 🆕 NUEVO CAMPO
       foto_entrada,
     } = data;
 
     const query = `
       INSERT INTO Viviendas 
-        (numero_vivienda, jefe_familia, direccion, latitud, longitud, altura, comunidad_id, foto_entrada)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        (numero_vivienda, jefe_familia, direccion, latitud, longitud, altura, comunidad_id, municipio_id, foto_entrada)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const values = [
@@ -34,6 +35,7 @@ class Vivienda {
       longitud || null,
       altura || null,
       comunidad_id,
+      municipio_id, // 🆕 NUEVO CAMPO
       foto_entrada || null,
     ];
 
@@ -54,7 +56,7 @@ class Vivienda {
       const [rows] = await db
         .promise()
         .query(
-          "SELECT vivienda_id, numero_vivienda, jefe_familia, direccion, latitud, longitud, altura, foto_entrada, comunidad_id FROM Viviendas"
+          "SELECT vivienda_id, numero_vivienda, jefe_familia, direccion, latitud, longitud, altura, foto_entrada, comunidad_id, municipio_id FROM Viviendas"
         );
       return rows;
     } catch (err) {
@@ -71,7 +73,7 @@ class Vivienda {
       const [rows] = await db
         .promise()
         .query(
-          "SELECT vivienda_id, numero_vivienda, jefe_familia, direccion, latitud, longitud, altura, foto_entrada, comunidad_id FROM Viviendas WHERE vivienda_id = ?",
+          "SELECT vivienda_id, numero_vivienda, jefe_familia, direccion, latitud, longitud, altura, foto_entrada, comunidad_id, municipio_id FROM Viviendas WHERE vivienda_id = ?",
           [id]
         );
       return rows[0];

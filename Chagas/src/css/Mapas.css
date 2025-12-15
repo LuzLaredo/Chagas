@@ -1,160 +1,294 @@
-/* Contenedor principal con fondo FIJO igual que otras páginas */
+/* ========== MAPAS (General y EE1) - DISEÑO HERMOSO ========== */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* Clases reales del JSX: mapas-container, mapas-header, mapas-filters, filter-group,
+   mapas-content, mapas-legend, mapas-map-container, mapas-map, mapas-info */
+
+/* ========== CONTENEDOR PRINCIPAL ========== */
 .mapas-container {
   min-height: 100vh;
   padding: 40px;
-  padding-top: 120px;
-  background: url('../assets/images/Cochabamba-Bolivia.png') no-repeat center center fixed;
-  background-size: cover;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  color: white;
-  position: relative;
+  padding-top: 160px;
+  background: linear-gradient(135deg, #ffffff 0%, #f9fafb 100%);
+  font-family: 'Poppins', sans-serif;
 }
 
-/* Asegurar que el contenido esté visible */
-.mapas-container > * {
-  position: relative;
-  z-index: 1;
+/* ========== LOADING ========== */
+.loading,
+.map-loading {
+  text-align: center;
+  padding: 80px 30px;
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: 600;
 }
 
-/* Header */
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #fee2e2;
+  border-top-color: #dc2626;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 20px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ========== HEADER ========== */
 .mapas-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  width: 100%;
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 30px;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
 
 .mapas-header h1 {
-  font-size: 3rem;
-  font-weight: 700;
-  color: #000;
+  font-size: 2.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin: 0;
-  text-align: left;
-  line-height: 1.1;
+  letter-spacing: -0.8px;
 }
 
-.mapas-header p {
-  font-size: 1rem;
-  color: #666;
-  margin: 5px 0 0 0;
-  font-style: italic;
-}
-
-.mapas-controls {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: stretch;
-  margin-top: 20px;
-  padding-top: 15px;
-  border-top: 2px solid #e9ecef;
-}
-
-.btn-center-map,
-.btn-toggle-municipios {
-  padding: 8px 12px;
-  background-color: #dc3545;
-  color: white;
-  border: 2px solid #000;
-  border-radius: 4px;
-  cursor: pointer;
+/* ========== ERROR BOX ========== */
+.error-box {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  color: #991b1b;
+  padding: 20px 25px;
+  border-radius: 12px;
+  border-left: 5px solid #dc2626;
+  margin-bottom: 25px;
   font-weight: 600;
-  font-size: 13px;
-  transition: all 0.3s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  width: 100%;
 }
 
-.btn-center-map:hover,
-.btn-toggle-municipios:hover {
-  background-color: #c82333;
-  transform: translateY(-1px);
+.btn-retry {
+  background: linear-gradient(135deg, #dc2626, #991b1b);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 15px;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
 }
 
-.btn-toggle-municipios {
-  background-color: #17a2b8;
+.btn-retry:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.4);
 }
 
-.btn-toggle-municipios:hover {
-  background-color: #138496;
-}
-
-/* Filtros */
+/* ========== FILTROS ========== */
 .mapas-filters {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #fff;
-  padding: 15px 20px;
-  border: 2px solid #000;
-  border-radius: 0;
-  margin-bottom: 20px;
+  background: white;
+  padding: 25px 30px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  margin-bottom: 25px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
 }
 
 .filter-group {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .filter-group label {
-  font-size: 14px;
-  font-weight: 600;
-  color: #000;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #374151;
 }
 
+.filter-group select,
 .estado-filter {
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  background-color: #f8f9fa;
-  color: #000;
-  min-width: 150px;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
+  background: #f9fafb;
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
+.filter-group select:focus,
 .estado-filter:focus {
   outline: none;
-  border-color: #dc3545;
-  background-color: white;
-  box-shadow: 0 0 0 2px rgba(220, 53, 69, 0.25);
+  border-color: #dc2626;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
 }
 
 .filter-info {
-  font-size: 14px;
-  color: #666;
-  font-weight: 500;
+  grid-column: 1 / -1;
+  padding: 15px 20px;
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  border-radius: 10px;
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 0.95rem;
+  text-align: center;
 }
 
-/* Contenido principal */
-.mapas-content {
+/* ========== STATS CARDS (LÍNEA HORIZONTAL) ========== */
+.stats-summary {
   display: flex;
-  gap: 20px;
-  flex: 1;
+  gap: 16px;
+  margin: 20px 0 30px 0;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 8px 0;
 }
 
-/* Leyenda */
+.stat-card {
+  background: white;
+  padding: 20px 24px;
+  border-radius: 14px;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.12);
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  transition: all 0.3s ease;
+  border-left: 5px solid;
+  min-width: 180px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.stat-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: inherit;
+  filter: brightness(0.9);
+  opacity: 0.3;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+}
+
+.stat-card.primary {
+  border-left-color: #3b82f6;
+  background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.stat-card.success {
+  border-left-color: #10b981;
+  background: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%);
+}
+
+.stat-card.warning {
+  border-left-color: #f59e0b;
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+}
+
+.stat-card.danger {
+  border-left-color: #ef4444;
+  background: linear-gradient(135deg, #ffffff 0%, #fef2f2 100%);
+}
+
+.stat-card.info {
+  border-left-color: #8b5cf6;
+  background: linear-gradient(135deg, #ffffff 0%, #faf5ff 100%);
+}
+
+.stat-card-icon {
+  font-size: 2.2rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.stat-card-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.stat-card-content h4 {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-card-content p {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #1f2937;
+  margin: 0;
+  line-height: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .stats-summary {
+    gap: 12px;
+  }
+
+  .stat-card {
+    min-width: 150px;
+    padding: 16px 20px;
+  }
+
+  .stat-card-icon {
+    font-size: 1.8rem;
+  }
+
+  .stat-card-content p {
+    font-size: 1.5rem;
+  }
+}
+
+/* ========== CONTENT ========== */
+.mapas-content {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 25px;
+  margin-bottom: 30px;
+}
+
+/* ========== LEGEND ========== */
 .mapas-legend {
-  background-color: #fff;
-  border: 2px solid #000;
-  border-radius: 0;
-  padding: 20px;
-  min-width: 250px;
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
   height: fit-content;
 }
 
 .mapas-legend h3 {
-  margin: 0 0 15px 0;
-  color: #000;
-  font-size: 18px;
+  font-size: 1.2rem;
   font-weight: 700;
-  text-align: center;
+  color: #1f2937;
+  margin: 0 0 20px 0;
+  letter-spacing: -0.3px;
 }
 
 .legend-items {
@@ -166,249 +300,582 @@
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  font-size: 0.9rem;
+  color: #374151;
+  font-weight: 500;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.legend-item:hover {
+  background: #fef2f2;
 }
 
 .legend-dot {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
-.legend-item span:last-child {
-  color: #000;
-  font-size: 14px;
-  font-weight: 500;
+/* ========== CONTROLS ========== */
+.mapas-controls {
+  margin-top: 20px;
 }
 
-/* Contenedor del mapa */
+.btn-center-map {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-center-map:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+/* ========== MAP CONTAINER ========== */
 .mapas-map-container {
-  flex: 1;
-  background-color: #fff;
-  border: 2px solid #000;
-  border-radius: 0;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
   overflow: hidden;
   position: relative;
-  min-height: 600px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  height: 600px;
 }
 
 .mapas-map {
   width: 100%;
-  height: 600px;
-  border-radius: 0;
-  display: block;
+  height: 100%;
+  border-radius: 16px;
 }
 
-/* Indicador de carga del mapa */
-.map-loading {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: #f8f9fa;
-  z-index: 10;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+/* Estilos para Leaflet */
+.leaflet-container {
+  font-family: 'Poppins', sans-serif;
+  border-radius: 16px;
 }
 
-.loading-spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #e9ecef;
-  border-top: 4px solid #dc3545;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+.leaflet-popup-content {
+  margin: 18px;
+  font-size: 0.95rem;
+  font-family: 'Poppins', sans-serif;
 }
 
-.map-loading p {
-  color: #666;
-  font-size: 16px;
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Marcadores personalizados */
-.custom-marker {
-  background: transparent !important;
-  border: none !important;
-}
-
-/* Estilos para tooltips de municipios */
-.leaflet-tooltip.label-muni {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  font-weight: 600;
-  text-shadow: 0 0 3px rgba(255,255,255,.9);
-}
-
-/* Información adicional */
+/* ========== INFO ========== */
 .mapas-info {
-  background-color: #fff;
-  border: 2px solid #000;
-  border-radius: 0;
-  padding: 15px 20px;
-  margin-top: 20px;
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+  margin-top: 25px;
+}
+
+.mapas-info h3 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 15px 0;
 }
 
 .mapas-info p {
-  margin: 0;
-  color: #000;
-  font-size: 14px;
-  line-height: 1.5;
+  color: #6b7280;
+  line-height: 1.6;
+  margin: 8px 0;
 }
 
-/* Estados de error y carga */
-.loading {
+/*
+ * ====================================
+ * |        ESTILOS PARA EL MODAL     |
+ * ====================================
+ */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 200px;
-  font-size: 18px;
-  color: #000;
-  background-color: #fff;
-  border: 2px solid #000;
-  border-radius: 0;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
 }
 
-.error {
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
+.modal-content {
+  background: white;
+  border-radius: 18px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.3);
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  animation: fadeInScale 0.3s ease-out;
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #9ca3af;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+  padding: 5px;
+}
+
+.modal-close-btn:hover {
+  color: #dc2626;
+  transform: rotate(90deg);
+}
+
+/* Header del Modal */
+.modal-header-denuncia {
+  padding: 25px;
+  padding-right: 60px;
+  border-left: 8px solid;
+  background: #fef3f2;
+  margin-bottom: 15px;
+}
+
+.modal-header-denuncia h2 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 5px 0;
+}
+
+.modal-estado {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+/* Cuerpo del Modal */
+.modal-body-denuncia {
+  padding: 0 25px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 30px;
+}
+
+.detail-group {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  gap: 15px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px dashed #e5e7eb;
 }
 
-.btn-retry {
-  background-color: #dc3545;
+.detail-group:last-child {
+  border-bottom: none;
+}
+
+.detail-group .detail-icon {
+  font-size: 1.5rem;
+  color: #dc2626;
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.detail-group h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 5px 0;
+}
+
+.detail-group p {
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.detail-description {
+  grid-column: 1 / -1;
+  padding: 15px 0;
+  border-bottom: 1px dashed #e5e7eb;
+}
+
+.detail-description h4 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #374151;
+  margin: 0 0 10px 0;
+}
+
+.reprogramacion-note {
+  background-color: #fef3c7;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border-left: 3px solid #f59e0b;
+  font-weight: 500;
+  color: #92400e;
+  font-size: 0.9rem;
+  margin-top: 10px !important;
+}
+
+/* Footer del Modal */
+.modal-footer-denuncia {
+  padding: 25px;
+  text-align: right;
+}
+
+.btn-action.primary {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
   color: white;
   border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
+  padding: 10px 20px;
+  border-radius: 10px;
   font-weight: 600;
-  transition: background-color 0.3s;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
-.btn-retry:hover {
-  background-color: #c82333;
+.btn-action.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
 }
 
-/* Responsive */
+/* Responsive del Modal */
+@media (max-width: 650px) {
+  .modal-content {
+    max-width: 95%;
+    margin: 20px;
+  }
+
+  .modal-body-denuncia {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .detail-group {
+    border-bottom: 1px dashed #e5e7eb;
+  }
+
+  .detail-group:last-of-type {
+    border-bottom: none;
+  }
+}
+
+/* ========== RESPONSIVE MAPAS ORIGINAL ========== */
+@media (max-width: 1200px) {
+  .mapas-content {
+    grid-template-columns: 250px 1fr;
+  }
+}
+
+@media (max-width: 1024px) {
+  .mapas-container {
+    padding: 30px;
+    padding-top: 110px;
+  }
+
+  .mapas-header h1 {
+    font-size: 2.3rem;
+  }
+
+  .mapas-map-container {
+    height: 500px;
+  }
+}
+
 @media (max-width: 768px) {
   .mapas-container {
     padding: 20px;
-    padding-top: 100px;
+    padding-top: 140px;
   }
-  
-  .mapas-header {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 15px;
-  }
-  
+
   .mapas-header h1 {
     font-size: 2rem;
-    text-align: center;
   }
-  
-  .mapas-controls {
-    flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-  }
-  
-  .btn-center-map,
-  .btn-toggle-municipios {
-    flex: 1;
-    min-width: 120px;
-    font-size: 12px;
-    padding: 6px 8px;
-  }
-  
-  .mapas-filters {
-    flex-direction: column;
-    gap: 10px;
-    align-items: stretch;
-  }
-  
-  .filter-group {
-    justify-content: center;
-  }
-  
+
   .mapas-content {
-    flex-direction: column;
+    grid-template-columns: 1fr;
   }
-  
+
   .mapas-legend {
-    min-width: auto;
     order: 2;
   }
-  
+
   .mapas-map-container {
     order: 1;
-  }
-  
-  .mapas-map {
     height: 400px;
+  }
+
+  .mapas-filters {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
   .mapas-header h1 {
-    font-size: 1.5rem;
+    font-size: 1.7rem;
   }
-  
-  .mapas-controls {
-    flex-direction: column;
-    gap: 6px;
+
+  .mapas-map-container {
+    height: 350px;
   }
-  
-  .btn-center-map,
-  .btn-toggle-municipios {
-    width: 100%;
-    justify-content: center;
-    font-size: 11px;
-    padding: 5px 6px;
+}
+
+/* Contenedor de la cuadrícula */
+.counter-grid {
+  display: grid;
+  /* Define 4 columnas: 3 para los estados y 1 para el total */
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  padding: 20px;
+  max-width: 1200px;
+  /* Ancho máximo opcional */
+  margin: 0 auto;
+}
+
+/* Estilo base de la tarjeta */
+.counter-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 25px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  /* Sombra sutil */
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  border-top: 5px solid var(--card-color, #ccc);
+  /* Borde superior con color variable */
+}
+
+/* Efecto hover para interactividad */
+.counter-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Número grande de la cuenta */
+.count-number {
+  font-size: 3.5em;
+  /* Tamaño grande y destacado */
+  font-weight: 700;
+  color: var(--card-color, #333);
+  /* Color del número igual al borde */
+  margin-bottom: 5px;
+  line-height: 1;
+}
+
+/* Etiqueta descriptiva */
+.count-label {
+  font-size: 1em;
+  font-weight: 500;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Estilo especial para la tarjeta de Total Activas */
+.total-card {
+  grid-column: span 1;
+  /* Ocupa una columna */
+  background-color: var(--card-color, #17a2b8);
+  /* Fondo con el color de acento */
+  color: #fff;
+  /* Texto blanco para contraste */
+  border-top: none;
+  /* No necesita borde superior ya que el fondo es de color */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.total-card .count-number,
+.total-card .count-label {
+  color: #fff;
+  /* Asegura que el texto dentro del total sea blanco */
+}
+
+.total-card .count-number {
+  font-size: 4em;
+  /* Ligeramente más grande que las demás */
+}
+
+/* Adaptación para pantallas más pequeñas (opcional) */
+@media (max-width: 900px) {
+  .counter-grid {
+    /* Pasa a 2 columnas en dispositivos medianos */
+    grid-template-columns: repeat(2, 1fr);
   }
-  
-  .mapas-map {
-    height: 300px;
+
+  .total-card {
+    grid-column: span 2;
+    /* El total ocupa las 2 columnas en medianos */
   }
-  
-  .legend-items {
-    gap: 8px;
+}
+
+@media (max-width: 550px) {
+  .counter-grid {
+    /* Pasa a 1 columna en dispositivos pequeños */
+    grid-template-columns: 1fr;
   }
-  
-  .legend-dot {
-    width: 16px;
-    height: 16px;
+
+  .total-card {
+    grid-column: span 1;
+    /* El total ocupa la única columna */
   }
-  
-  .legend-item span:last-child {
-    font-size: 12px;
-  }
+}
+
+/* Contenedor principal de los contadores */
+.mapas-counter {
+  display: flex;
+  /* Alinea las tarjetas una al lado de la otra */
+  gap: 20px;
+  /* Espacio entre las tarjetas */
+  justify-content: center;
+  /* Centra las tarjetas en el contenedor */
+  padding: 30px 20px;
+}
+
+/* Estilo base de cada tarjeta de contador */
+.counter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 25px 40px;
+  border-radius: 12px;
+  color: white;
+  /* Sombras para dar profundidad */
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+  transition: transform 0.3s ease-in-out;
+  min-width: 180px;
+  /* Asegura un tamaño mínimo */
+}
+
+/* Efecto hover */
+.counter-card:hover {
+  transform: translateY(-5px);
+}
+
+/* Título (Positivos / Negativos) */
+.counter-label {
+  font-size: 1.1em;
+  font-weight: 500;
+  margin-bottom: 5px;
+  text-transform: uppercase;
+}
+
+/* Número grande de la cuenta */
+.counter-number {
+  font-size: 3em;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Iconos de las tarjetas (asumiendo que usas Font Awesome o similar) */
+.counter-icon {
+  font-size: 1.5em;
+  margin-bottom: 10px;
+}
+
+/* Modificadores de color para Positivo y Negativo */
+.positivo {
+  /* Color sugerido para POSITIVO: Verde */
+  background-color: #28a745;
+}
+
+.negativo {
+  /* Color sugerido para NEGATIVO: Rojo */
+  background-color: #dc3545;
+}
+
+/* Contenedor de la cuadrícula (para el primer ejemplo) */
+.counter-grid {
+  gap: 15px;
+  /* Reducimos el espacio entre tarjetas */
+  padding: 15px;
+}
+
+/* Estilo base de la tarjeta (aplicable a ambos ejemplos) */
+.counter-card {
+  padding: 15px 15px;
+  /* Reducción significativa del padding interno */
+  border-radius: 8px;
+  /* Ligeramente más pequeños los bordes */
+}
+
+/* Número grande de la cuenta */
+.count-number {
+  font-size: 2.5em;
+  /* Reducción del tamaño del número */
+  font-weight: 700;
+  margin-bottom: 3px;
+}
+
+/* Etiqueta descriptiva */
+.count-label {
+  font-size: 0.85em;
+  /* Reducción del tamaño de la etiqueta */
+}
+
+/* Estilo especial para la tarjeta de Total Activas (para el primer ejemplo) */
+.total-card .count-number {
+  font-size: 3em;
+  /* Reducción a un tamaño grande pero menor */
+}
+
+/* Contenedor de Positivos/Negativos (para el segundo ejemplo) */
+.mapas-counter {
+  gap: 15px;
+  padding: 15px 10px;
+}
+
+/* Estilo para Positivos/Negativos (usa la clase .counter-card, ajustada arriba) */
+.counter-card {
+  /* Ya se ajustó arriba para ser más pequeño, lo cual aplica aquí */
+  min-width: 150px;
+  /* Reducción del ancho mínimo */
+}
+
+.counter-number {
+  font-size: 2.5em;
+  /* Aplicado arriba */
+}
+
+.counter-label {
+  font-size: 0.9em;
+  /* Ligeramente más pequeña */
 }

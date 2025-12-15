@@ -1,19 +1,19 @@
-import mysql from "mysql2";
+import mysql from "mysql2"; // ← mysql2 normal, no mysql2/promise
 
 // ✅ Configuración principal de Railway (producción)
 const dbConfig = {
-  host: "metro.proxy.rlwy.net",
-  port: 15229,
-  user: "root",
-  password: "PNsjISxbRhUSISYtudCXLkmkIrcWqFLj", 
-  database: "railway",
+  host: process.env.DB_HOST || "yamanote.proxy.rlwy.net", // ← Cambiado según imagen
+  port: process.env.DB_PORT || 56068, // ← Cambiado según imagen
+  user: process.env.DB_USER || "root",
+  password: process.env.DB_PASSWORD || "ylaaQvNjbdCUTVvRJXpQnFNPSaYXZWcz", // ← Dejar vacío según imagen (se pide después)
+  database: process.env.DB_NAME || "railway", // ← Según imagen
   connectTimeout: 60000,
   acquireTimeout: 60000,
   timeout: 60000,
   reconnect: true,
   keepAliveInitialDelay: 60000,
   enableKeepAlive: true,
-  multipleStatements: true, // por si haces selects combinados
+  multipleStatements: true,
 };
 
 // Crear conexión
